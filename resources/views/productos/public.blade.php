@@ -22,8 +22,15 @@
                         <p class="text-gray-600 mb-2 text-center">{{ $producto->descripcion }}</p>
                         <span class="text-indigo-700 font-extrabold text-lg mb-2 block text-center">${{ number_format($producto->precio, 0, ',', '.') }}</span>
                         <span class="text-xs text-gray-500 mb-4 block text-center">Stock: {{ $producto->stock }}</span>
-                        <a href="{{ route('productos.show', $producto->_id) }}"
-                           class="btn btn-primary mt-auto">Ver detalle</a>
+                        <div class="flex gap-2 mt-auto w-full justify-center">
+                            <a href="{{ route('productos.show', $producto->_id) }}" class="btn btn-secondary">Ver detalle</a>
+
+                            <form action="{{ route('cart.add', $producto->_id) }}" method="POST" class="inline-block">
+                                @csrf
+                                <input type="hidden" name="qty" value="1">
+                                <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                            </form>
+                        </div>
                     </div>
                 @empty
                     <div class="col-span-3 text-center text-gray-500">

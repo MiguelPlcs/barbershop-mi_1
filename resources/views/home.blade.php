@@ -67,18 +67,34 @@
             <section class="hero-carousel">
                 <button class="carousel-btn prev" aria-label="Anterior" onclick="prevSlide()">‹</button>
                 <div class="slides">
-                    <article class="hero-slide" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.05)), url('{{ asset('images/slide-1.jpg') }}');">
-                        <div class="hero-inner">
-                            <h2>Ofertas Babyliss</h2>
-                            <p class="hero-price">Ahora: <strong>$700.000</strong></p>
-                        </div>
-                    </article>
-                    <article class="hero-slide" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.05)), url('{{ asset('images/slide-2.jpg') }}');">
-                        <div class="hero-inner">
-                            <h2>Parabarberos está en tu ciudad</h2>
-                            <p>Compra online y recibe hoy mismo</p>
-                        </div>
-                    </article>
+                    @if(isset($productos) && $productos->isNotEmpty())
+                        @foreach($productos as $producto)
+                            <article class="hero-slide" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
+                                <div class="hero-inner p-6 text-white">
+                                    <div class="max-w-3xl">
+                                        <h2 class="text-3xl font-bold mb-2">{{ $producto->nombre }}</h2>
+                                        <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-extrabold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
+                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="qty" value="1">
+                                                <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                            </form>
+                                            <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn btn-secondary">Ver detalle</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        @endforeach
+                    @else
+                        <article class="hero-slide" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.05)), url('{{ asset('images/slide-1.jpg') }}');">
+                            <div class="hero-inner">
+                                <h2>Ofertas Babyliss</h2>
+                                <p class="hero-price">Ahora: <strong>$700.000</strong></p>
+                            </div>
+                        </article>
+                    @endif
                 </div>
                 <button class="carousel-btn next" aria-label="Siguiente" onclick="nextSlide()">›</button>
             </section>
@@ -90,6 +106,7 @@
                 <a class="card" href="#">Ofertas</a>
                 <a class="card" href="#">Novedades</a>
             </section>
+            <!-- Nota: la lista de productos se ha integrado en el slide del carrusel -->
         </main>
 
         <a class="whatsapp-float" href="https://wa.me/573226569641" target="_blank" rel="noopener">💬</a>

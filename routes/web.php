@@ -3,12 +3,19 @@
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\AdminProductoController;
 use App\Http\Controllers\AdminController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // Página de inicio
 Route::get('/', function () {
-    return view('home', ['hideNav' => true]);
+    // Redirigir admin al dashboard
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+
+    // Mostrar productos en la página principal (paginados)
+    $productos = \App\Models\Producto::paginate(9);
+    return view('home', compact('productos'));
 });
 
 // Catálogo público
@@ -16,10 +23,17 @@ Route::get('/productos', [ProductoController::class, 'public'])->name('productos
 Route::get('/productos/{producto}', [ProductoController::class, 'show'])->name('productos.show');
 
 // Rutas para usuarios autenticados (user y admin, controlo el rol en el controlador)
+// Rutas públicas relacionadas con el carrito
+Route::post('/cart/add/{producto}', [ProductoController::class, 'addToCart'])->name('cart.add');
+Route::get('/cart', [ProductoController::class, 'cart'])->name('cart.index');
+
 Route::middleware(['auth'])->group(function () {
     // Catálogo para usuario registrado
     Route::get('/user/productos', [ProductoController::class, 'user'])->name('productos.user');
     Route::post('/productos/{producto}/comprar', [ProductoController::class, 'comprar'])->name('productos.comprar');
+
+    // Checkout del carrito (solo para usuarios autenticados)
+    Route::post('/cart/checkout', [ProductoController::class, 'checkout'])->name('cart.checkout');
 
     // Panel de administración y CRUD de productos
     Route::prefix('admin')->name('admin.')->group(function () {
