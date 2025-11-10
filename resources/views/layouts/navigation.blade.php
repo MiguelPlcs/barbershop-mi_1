@@ -203,6 +203,18 @@
             if (form.classList.contains('ajax-add-to-cart')) {
                 e.preventDefault();
                 const fd = new FormData(form);
+                // If FormData didn't pick up qty for some reason, try to append it manually
+                try {
+                    if (!fd.has || !fd.has('qty')) {
+                        const qtyInput = form.querySelector('[name="qty"]');
+                        if (qtyInput && qtyInput.value) fd.append('qty', qtyInput.value);
+                    }
+                } catch (err) { console.debug('FormData has() check error', err); }
+                // DEBUG: log form entries to help diagnose missing qty
+                try {
+                    for (const pair of fd.entries()) console.debug('add-to-cart form entry', pair[0], pair[1]);
+                } catch (err) { console.debug('FormData debug error', err); }
+
                 fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                     .then(r => r.json())
                     .then(json => {

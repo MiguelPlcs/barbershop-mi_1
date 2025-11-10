@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Barbería - Inicio</title>
+    <title>Barbershop</title>
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
@@ -66,7 +66,55 @@
     <style>
         /* Estilos mínimos para el filtrado */
         .hidden-slide { display: none !important; }
+        /* Separación entre pills y otros elementos */
+        .pills { margin: 1rem 0; }
+        /* Espacio entre cada pill y estilos básicos */
+        .pills .pill { margin-right: 0.5rem; padding: 0.35rem 0.6rem; display: inline-block; border-radius: 9999px; background: #f3f3f3; color: #111; }
         .pills .pill.active { background: #111; color: #fff; }
+        /* Carril de slides: responsive spacing y tamaños para mostrar hasta 4 items en pantallas grandes */
+        .hero-carousel { margin-top: 1rem; }
+
+        .hero-carousel .slides {
+            display:flex;
+            gap:1rem;
+            overflow-x:auto;
+            scroll-snap-type:x mandatory;
+            -webkit-overflow-scrolling:touch;
+            padding: 0 0.75rem;
+        }
+
+        /* Mobile (1 por pantalla) */
+        @media (max-width: 639px) {
+            .hero-carousel { margin-top: 0.6rem; }
+            .hero-carousel .slides { padding: 0 0.5rem; }
+            .hero-carousel .hero-slide { flex: 0 0 calc(100% - 1rem); }
+            .hero-slide .hero-inner { padding: 0.6rem !important; }
+        }
+
+        /* Small tablet (2 por pantalla) */
+        @media (min-width: 640px) and (max-width: 899px) {
+            .hero-carousel { margin-top: 1rem; }
+            .hero-carousel .slides { padding: 0 0.75rem; }
+            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 1rem) / 2); }
+            .hero-slide .hero-inner { padding: 0.85rem !important; }
+        }
+
+        /* Medium (3 por pantalla) */
+        @media (min-width: 900px) and (max-width: 1199px) {
+            .hero-carousel { margin-top: 1.25rem; }
+            .hero-carousel .slides { padding: 0 1rem; }
+            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 2rem) / 3); }
+            .hero-slide .hero-inner { padding: 1rem !important; }
+        }
+
+        /* Desktop large (4 por pantalla) */
+        @media (min-width: 1200px) {
+            .hero-carousel { margin-top: 2rem; }
+            .hero-carousel .slides { padding: 0 2rem; }
+            /* restamos 3 gaps (1rem each -> 3rem) o 2rem padding depending, approximate with 2rem */
+            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 3rem) / 4); }
+            .hero-slide .hero-inner { padding: 1.25rem !important; }
+        }
     </style>
     
 </head>
@@ -143,10 +191,23 @@
                 <div class="slides">
                     @if(isset($productos) && $productos->isNotEmpty())
                         @foreach($productos as $producto)
-                            @php $stock = isset($producto->stock) ? (int)$producto->stock : null; @endphp
-                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" data-stock="{{ $stock ?? 0 }}" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
+                            @php
+                                $stock = isset($producto->stock) ? (int)$producto->stock : null;
+                                $hasImage = false;
+                                if (!empty($producto->imagen)) {
+                                    try {
+                                        $hasImage = \Illuminate\Support\Facades\Storage::disk('public')->exists($producto->imagen);
+                                    } catch (\Exception $e) {
+                                        $hasImage = false;
+                                    }
+                                }
+                            @endphp
+                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" data-stock="{{ $stock ?? 0 }}" style="position:relative; background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ ($producto->imagen && $hasImage) ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
                                 <div class="hero-inner p-6 text-white">
                                     <div class="max-w-3xl">
+                                        @if(!empty($producto->imagen) && !$hasImage)
+                                            <div class="slide-badge" style="position:absolute; left:12px; top:12px; background:rgba(220,38,38,0.9); color:#fff; padding:6px 10px; border-radius:6px; font-weight:700; z-index:60;">Imagen no encontrada</div>
+                                        @endif
                                         <h2 class="text-3xl font-bold mb-2">{{ $producto->nombre }}</h2>
                                         <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
                                         <div class="flex items-center gap-4">
@@ -221,10 +282,10 @@
                 });
                 input.addEventListener('change', function (e) { clampInput(this); });
             });
-        });
-    </script>
+         });
+         </script>
 
-            <div class="promo-strip">Domicilio gratis en <strong>Cali, Pasto, Tuluá y Medellín</strong></div>
+            <div class="promo-strip">Domicilio gratis en <strong>Tutunendo, Cabi, Tanando y Tado</strong></div>
 
             <section class="quick-links">
                 <a class="card" href="{{ route('productos.public') }}">Ver catálogo</a>

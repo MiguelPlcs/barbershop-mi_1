@@ -68,21 +68,24 @@ class ProductoController extends Controller
             $cartModel = Cart::firstOrCreate(['user_id' => Auth::id()]);
             $item = CartItem::where('cart_id', $cartModel->id)->where('producto_id', $id)->first();
             if ($item) {
-                $newQty = $item->qty + $qty;
-                if (isset($producto->stock) && $newQty > $producto->stock) {
-                    if ($request->wantsJson() || $request->ajax()) {
-                        return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+                // Increment but clamp to available stock (allow adding up to full stock)
+                $desired = $item->qty + $qty;
+                if (isset($producto->stock)) {
+                    $clamped = min($desired, (int)$producto->stock);
+                    $item->qty = $clamped;
+                    $item->save();
+                    if ($clamped < $desired) {
+                        $clampedMessage = 'La cantidad se ha ajustado al stock disponible.';
                     }
-                    return redirect()->back()->with('error', 'Stock insuficiente.');
+                } else {
+                    $item->qty = $desired;
+                    $item->save();
                 }
-                $item->qty = $newQty;
-                $item->save();
             } else {
                 if (isset($producto->stock) && $qty > $producto->stock) {
-                    if ($request->wantsJson() || $request->ajax()) {
-                        return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
-                    }
-                    return redirect()->back()->with('error', 'Stock insuficiente.');
+                    // If the requested qty exceeds stock, clamp to stock and create the item
+                    $qty = (int) $producto->stock;
+                    $clampedMessage = 'La cantidad se ha ajustado al stock disponible.';
                 }
                 $item = CartItem::create([
                     'cart_id' => $cartModel->id,
@@ -121,20 +124,20 @@ class ProductoController extends Controller
         // Guest: keep in session
         $cart = session('cart', []);
         if (isset($cart[$id])) {
-            $newQty = $cart[$id]['qty'] + $qty;
-            if (isset($producto->stock) && $newQty > $producto->stock) {
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+            $desired = $cart[$id]['qty'] + $qty;
+            if (isset($producto->stock)) {
+                $clamped = min($desired, (int)$producto->stock);
+                $cart[$id]['qty'] = $clamped;
+                if ($clamped < $desired) {
+                    $clampedMessage = 'La cantidad se ha ajustado al stock disponible.';
                 }
-                return redirect()->back()->with('error', 'Stock insuficiente.');
+            } else {
+                $cart[$id]['qty'] = $desired;
             }
-            $cart[$id]['qty'] = $newQty;
         } else {
             if (isset($producto->stock) && $qty > $producto->stock) {
-                if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
-                }
-                return redirect()->back()->with('error', 'Stock insuficiente.');
+                $qty = (int)$producto->stock;
+                $clampedMessage = 'La cantidad se ha ajustado al stock disponible.';
             }
             $cart[$id] = ['producto_id' => $id, 'nombre' => $producto->nombre, 'precio' => $producto->precio, 'qty' => $qty, 'imagen' => $producto->imagen ?? null];
         }
@@ -158,13 +161,15 @@ class ProductoController extends Controller
                 ];
             }
 
-            return response()->json([
+            $response = [
                 'success' => true,
                 'message' => 'Producto añadido al carrito.',
                 'total_items' => $totalItems,
                 'total_price' => $totalPrice,
                 'items' => $items,
-            ]);
+            ];
+            if (!empty($clampedMessage)) $response['message'] = $clampedMessage;
+            return response()->json($response);
         }
 
         return redirect()->back()->with('success', 'Producto añadido al carrito.');
