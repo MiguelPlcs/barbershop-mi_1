@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Cart;
+use App\Models\CartItem;
 
 class ProductoController extends Controller
 {
@@ -51,22 +53,119 @@ class ProductoController extends Controller
     public function addToCart(Request $request, Producto $producto)
     {
         $qty = max(1, (int) $request->input('qty', 1));
-        $cart = session('cart', []);
-        $id = (string) ($producto->_id ?? $producto->id);
-
-        if (isset($cart[$id])) {
-            $cart[$id]['qty'] += $qty;
-        } else {
-            $cart[$id] = [
-                'producto_id' => $id,
-                'nombre' => $producto->nombre,
-                'precio' => $producto->precio,
-                'qty' => $qty,
-                'imagen' => $producto->imagen ?? null,
-            ];
+        // Check stock
+        if (isset($producto->stock) && $producto->stock <= 0) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Producto agotado.'], 400);
+            }
+            return redirect()->back()->with('error', 'Producto sin stock.');
         }
 
+        $id = (string) ($producto->_id ?? $producto->id);
+
+        if (Auth::check()) {
+            // Persist cart in DB for authenticated users
+            $cartModel = Cart::firstOrCreate(['user_id' => Auth::id()]);
+            $item = CartItem::where('cart_id', $cartModel->id)->where('producto_id', $id)->first();
+            if ($item) {
+                $newQty = $item->qty + $qty;
+                if (isset($producto->stock) && $newQty > $producto->stock) {
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+                    }
+                    return redirect()->back()->with('error', 'Stock insuficiente.');
+                }
+                $item->qty = $newQty;
+                $item->save();
+            } else {
+                if (isset($producto->stock) && $qty > $producto->stock) {
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+                    }
+                    return redirect()->back()->with('error', 'Stock insuficiente.');
+                }
+                $item = CartItem::create([
+                    'cart_id' => $cartModel->id,
+                    'producto_id' => $id,
+                    'nombre' => $producto->nombre,
+                    'precio' => $producto->precio,
+                    'qty' => $qty,
+                ]);
+            }
+
+            // Build response from DB items
+            $items = [];
+            $totalItems = 0;
+            $totalPrice = 0;
+            foreach ($cartModel->items as $c) {
+                $subtotal = $c->precio * $c->qty;
+                $totalItems += $c->qty;
+                $totalPrice += $subtotal;
+                $items[] = [
+                    'id' => $c->id,
+                    'producto_id' => $c->producto_id,
+                    'nombre' => $c->nombre,
+                    'precio' => $c->precio,
+                    'qty' => $c->qty,
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Producto añadido al carrito.', 'items' => $items, 'total_items' => $totalItems, 'total_price' => $totalPrice]);
+            }
+
+            return redirect()->back()->with('success', 'Producto añadido al carrito.');
+        }
+
+        // Guest: keep in session
+        $cart = session('cart', []);
+        if (isset($cart[$id])) {
+            $newQty = $cart[$id]['qty'] + $qty;
+            if (isset($producto->stock) && $newQty > $producto->stock) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+                }
+                return redirect()->back()->with('error', 'Stock insuficiente.');
+            }
+            $cart[$id]['qty'] = $newQty;
+        } else {
+            if (isset($producto->stock) && $qty > $producto->stock) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Stock insuficiente.'], 400);
+                }
+                return redirect()->back()->with('error', 'Stock insuficiente.');
+            }
+            $cart[$id] = ['producto_id' => $id, 'nombre' => $producto->nombre, 'precio' => $producto->precio, 'qty' => $qty, 'imagen' => $producto->imagen ?? null];
+        }
         session(['cart' => $cart]);
+
+        // Si la petición espera JSON (AJAX), devolver resumen del carrito
+        if ($request->wantsJson() || $request->ajax()) {
+            $totalItems = 0;
+            $totalPrice = 0;
+            $items = [];
+            foreach ($cart as $c) {
+                $totalItems += $c['qty'];
+                $subtotal = $c['precio'] * $c['qty'];
+                $totalPrice += $subtotal;
+                $items[] = [
+                    'producto_id' => $c['producto_id'],
+                    'nombre' => $c['nombre'],
+                    'precio' => $c['precio'],
+                    'qty' => $c['qty'],
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Producto añadido al carrito.',
+                'total_items' => $totalItems,
+                'total_price' => $totalPrice,
+                'items' => $items,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Producto añadido al carrito.');
     }

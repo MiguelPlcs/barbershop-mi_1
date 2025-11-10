@@ -29,6 +29,11 @@ Route::get('/productos/{producto}', [ProductoController::class, 'show'])->name('
 Route::post('/cart/add/{producto}', [ProductoController::class, 'addToCart'])->name('cart.add');
 Route::get('/cart', [ProductoController::class, 'cart'])->name('cart.index');
 
+// Endpoints para gestión del carrito (AJAX)
+Route::get('/cart/data', [\App\Http\Controllers\CartController::class, 'data'])->name('cart.data');
+Route::patch('/cart/item/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/item/{id}', [\App\Http\Controllers\CartController::class, 'destroy'])->name('cart.destroy');
+
 Route::middleware(['auth'])->group(function () {
     // Catálogo para usuario registrado
     Route::get('/user/productos', [ProductoController::class, 'user'])->name('productos.user');

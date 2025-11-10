@@ -25,7 +25,7 @@
                         <div class="flex gap-2 mt-auto w-full justify-center">
                             <a href="{{ route('productos.show', $producto->_id) }}" class="btn btn-secondary">Ver detalle</a>
 
-                            <form action="{{ route('cart.add', $producto->_id) }}" method="POST" class="inline-block">
+                            <form action="{{ route('cart.add', $producto->_id) }}" method="POST" class="inline-block ajax-add-to-cart">
                                 @csrf
                                 <input type="hidden" name="qty" value="1">
                                 <button type="submit" class="btn btn-primary">Añadir al carrito</button>

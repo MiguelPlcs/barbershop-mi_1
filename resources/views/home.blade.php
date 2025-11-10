@@ -68,6 +68,7 @@
         .hidden-slide { display: none !important; }
         .pills .pill.active { background: #111; color: #fff; }
     </style>
+    
 </head>
 <body>
     {{-- filepath: resources/views/home.blade.php --}}
@@ -85,13 +86,36 @@
                     <a href="#">Nosotros</a>
                     <a href="#">Contacto</a>
                 </nav>
-                <div class="header-actions">
+                <div class="header-actions" style="position:relative">
                     @auth
                         <a href="{{ route('profile.edit') }}" class="btn-circle" title="Mi perfil">👤</a>
                     @else
                         <a href="{{ url('/login') }}" class="btn-circle" title="Iniciar sesión">👤</a>
                     @endauth
-                    <a href="#" class="btn-circle cart" title="Carrito">🛒<span class="cart-count">0</span></a>
+
+                    <!-- Carrito (ubicado junto al login/perfil) -->
+                    <div class="ms-4 relative" style="display:inline-block;">
+                        <a href="#" id="cart-toggle" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white dark:text-white dark:bg-gray-800 hover:text-gray-300 focus:outline-none transition ease-in-out duration-150" title="Carrito">🛒<span class="cart-count ml-2">0</span></a>
+                        <div id="mini-cart" style="display:none; position:absolute; right:0; top:48px; width:320px; background:#fff; color:#111; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.2); z-index:50; overflow:hidden;">
+                            <div style="padding:12px; border-bottom:1px solid #eee; font-weight:700">Carrito</div>
+                            <div id="mini-cart-items" style="max-height:240px; overflow:auto; padding:8px"></div>
+                            <div style="padding:12px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                                <strong>Total:</strong>
+                                <span id="mini-cart-total">$0</span>
+                            </div>
+                            <div style="padding:8px; display:flex; gap:8px; justify-content:space-between;">
+                                <a href="{{ route('cart.index') }}" class="btn btn-secondary" style="flex:1">Ver carrito</a>
+                                @auth
+                                    <form action="{{ route('cart.checkout') }}" method="POST" style="margin:0">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success">Pagar</button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('login') }}" class="btn btn-primary" style="flex:1">Inicia sesión</a>
+                                @endauth
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="container full search-row">
@@ -119,17 +143,31 @@
                 <div class="slides">
                     @if(isset($productos) && $productos->isNotEmpty())
                         @foreach($productos as $producto)
-                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
+                            @php $stock = isset($producto->stock) ? (int)$producto->stock : null; @endphp
+                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" data-stock="{{ $stock ?? 0 }}" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
                                 <div class="hero-inner p-6 text-white">
                                     <div class="max-w-3xl">
                                         <h2 class="text-3xl font-bold mb-2">{{ $producto->nombre }}</h2>
                                         <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
                                         <div class="flex items-center gap-4">
                                             <span class="text-2xl font-extrabold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
-                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST">
+                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart">
                                                 @csrf
-                                                <input type="hidden" name="qty" value="1">
-                                                <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                                @if($stock === null)
+                                                    <input type="hidden" name="qty" value="1">
+                                                    <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                                @else
+                                                    @if($stock <= 0)
+                                                        <span class="text-red-300 font-semibold">Agotado</span>
+                                                        <button type="submit" class="btn btn-primary" disabled>Añadir al carrito</button>
+                                                    @else
+                                                        <label class="inline-flex items-center">
+                                                            <input type="number" name="qty" min="1" max="{{ $stock }}" value="1" class="w-20 px-2 py-1 rounded border bg-white text-black" />
+                                                        </label>
+                                                        <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                                        <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
+                                                    @endif
+                                                @endif
                                             </form>
                                             <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn btn-secondary">Ver detalle</a>
                                         </div>
@@ -148,6 +186,43 @@
                 </div>
                 <button class="carousel-btn next" aria-label="Siguiente" onclick="nextSlide()">›</button>
             </section>
+
+    <script>
+        // Clamp qty inputs in slides so the user cannot type more than max stock
+        document.addEventListener('DOMContentLoaded', function () {
+            function clampInput(el) {
+                const min = parseInt(el.min || 1);
+                const max = parseInt(el.max || 0);
+                let val = parseInt(el.value || 1);
+                if (isNaN(val) || val < min) val = min;
+                if (max > 0 && val > max) {
+                    el.value = max;
+                    // small feedback
+                    const msg = document.createElement('div');
+                    msg.textContent = 'Cantidad ajustada al stock disponible (' + max + ')';
+                    msg.style.color = '#b91c1c';
+                    msg.style.fontSize = '12px';
+                    msg.style.marginTop = '6px';
+                    el.parentNode.appendChild(msg);
+                    setTimeout(() => msg.remove(), 2500);
+                    return;
+                }
+                el.value = val;
+            }
+
+            document.querySelectorAll('article.hero-slide input[type="number"][name="qty"]').forEach(input => {
+                input.addEventListener('input', function (e) {
+                    const max = parseInt(this.max || 0);
+                    const min = parseInt(this.min || 1);
+                    let v = parseInt(this.value || 0);
+                    if (isNaN(v)) v = min;
+                    if (max > 0 && v > max) this.value = max;
+                    else if (v < min) this.value = min;
+                });
+                input.addEventListener('change', function (e) { clampInput(this); });
+            });
+        });
+    </script>
 
             <div class="promo-strip">Domicilio gratis en <strong>Cali, Pasto, Tuluá y Medellín</strong></div>
 
