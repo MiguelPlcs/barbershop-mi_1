@@ -37,6 +37,17 @@
                             </div>
                         @endif
                     </div>
+                    <div class="mb-4">
+                        <label>Categoría:</label>
+                        <input list="categorias-list" name="categoria" class="input" value="{{ old('categoria', $producto->categoria ?? '') }}" placeholder="Ej: Capas, Ceras, Máquinas">
+                        <datalist id="categorias-list">
+                            @if(isset($categorias))
+                                @foreach($categorias as $c)
+                                    <option value="{{ $c }}"></option>
+                                @endforeach
+                            @endif
+                        </datalist>
+                    </div>
                     <button type="submit" class="btn btn-success">Actualizar</button>
                     <a href="{{ route('admin.productos.index') }}" class="btn btn-secondary">Cancelar</a>
                 </form>

@@ -15,7 +15,9 @@ Route::get('/', function () {
 
     // Mostrar productos en la página principal (paginados)
     $productos = \App\Models\Producto::paginate(9);
-    return view('home', compact('productos'));
+    // Obtener categorías únicas desde los productos
+    $categorias = \App\Models\Producto::pluck('categoria')->filter()->unique()->values();
+    return view('home', compact('productos', 'categorias'));
 });
 
 // Catálogo público

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AdminProductoController extends Controller
 {
@@ -17,7 +18,8 @@ class AdminProductoController extends Controller
     public function create()
     {
         $producto = null;
-        return view('admin.productos.create', compact('producto'));
+        $categorias = Producto::pluck('categoria')->filter()->unique()->values();
+        return view('admin.productos.create', compact('producto', 'categorias'));
     }
 
     public function store(Request $request)
@@ -27,8 +29,13 @@ class AdminProductoController extends Controller
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'categoria' => 'nullable|string|max:100',
             'imagen' => 'nullable|image|max:2048',
         ]);
+
+        if (!empty($data['categoria'])) {
+            $data['categoria'] = Str::title(trim($data['categoria']));
+        }
 
         if ($request->hasFile('imagen')) {
             $data['imagen'] = $request->file('imagen')->store('productos', 'public');
@@ -46,7 +53,8 @@ class AdminProductoController extends Controller
 
     public function edit(Producto $producto)
     {
-        return view('admin.productos.edit', compact('producto'));
+        $categorias = Producto::pluck('categoria')->filter()->unique()->values();
+        return view('admin.productos.edit', compact('producto', 'categorias'));
     }
 
     public function update(Request $request, Producto $producto)
@@ -56,8 +64,13 @@ class AdminProductoController extends Controller
             'descripcion' => 'required|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'categoria' => 'nullable|string|max:100',
             'imagen' => 'nullable|image|max:2048',
         ]);
+
+        if (!empty($data['categoria'])) {
+            $data['categoria'] = Str::title(trim($data['categoria']));
+        }
 
         if ($request->hasFile('imagen')) {
             if ($producto->imagen) {

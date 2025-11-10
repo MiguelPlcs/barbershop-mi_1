@@ -20,7 +20,54 @@
             if (e.key === 'ArrowRight') nextSlide();
             if (e.key === 'ArrowLeft') prevSlide();
         });
+
+        // Filtrado por categoría: cuando el usuario hace click en una "pill" mostrar solo slides de esa categoría
+        document.addEventListener('DOMContentLoaded', function () {
+            function setupCategoryFilters() {
+                const pills = document.querySelectorAll('.pills .pill');
+                const slidesContainer = document.querySelector('.hero-carousel .slides');
+                if (!pills.length || !slidesContainer) return;
+
+                const slides = () => Array.from(slidesContainer.querySelectorAll('.hero-slide'));
+
+                pills.forEach(pill => {
+                    pill.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const cat = this.dataset.category || this.textContent.trim();
+                        pills.forEach(p => p.classList.remove('active'));
+                        this.classList.add('active');
+
+                        if (cat === 'all') {
+                            slides().forEach(s => s.classList.remove('hidden-slide'));
+                            const first = slides()[0];
+                            if (first) first.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+                            return;
+                        }
+
+                        let firstVisible = null;
+                        slides().forEach(s => {
+                            const sCat = (s.dataset.category || '').toString();
+                            if (sCat === cat) {
+                                s.classList.remove('hidden-slide');
+                                if (!firstVisible) firstVisible = s;
+                            } else {
+                                s.classList.add('hidden-slide');
+                            }
+                        });
+
+                        if (firstVisible) firstVisible.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+                    });
+                });
+            }
+
+            setupCategoryFilters();
+        });
     </script>
+    <style>
+        /* Estilos mínimos para el filtrado */
+        .hidden-slide { display: none !important; }
+        .pills .pill.active { background: #111; color: #fff; }
+    </style>
 </head>
 <body>
     {{-- filepath: resources/views/home.blade.php --}}
@@ -52,13 +99,16 @@
             </div>
             <div class="container full pills-row">
                 <div class="pills">
-                    <a class="pill">Capas</a>
-                    <a class="pill">Ceras</a>
-                    <a class="pill">Máquinas</a>
-                    <a class="pill">Patilleras</a>
-                    <a class="pill">Tijeras</a>
-                    <a class="pill">Barberas</a>
-                    <a class="pill">Atomizadores</a>
+                    <a class="pill active" data-category="all">Todos</a>
+                    @if(isset($categorias) && $categorias->isNotEmpty())
+                        @foreach($categorias as $cat)
+                            <a class="pill" data-category="{{ $cat }}">{{ $cat }}</a>
+                        @endforeach
+                    @else
+                        <a class="pill" data-category="Capas">Capas</a>
+                        <a class="pill" data-category="Ceras">Ceras</a>
+                        <a class="pill" data-category="Máquinas">Máquinas</a>
+                    @endif
                 </div>
             </div>
         </header>
@@ -69,7 +119,7 @@
                 <div class="slides">
                     @if(isset($productos) && $productos->isNotEmpty())
                         @foreach($productos as $producto)
-                            <article class="hero-slide" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
+                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" style="background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ $producto->imagen ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
                                 <div class="hero-inner p-6 text-white">
                                     <div class="max-w-3xl">
                                         <h2 class="text-3xl font-bold mb-2">{{ $producto->nombre }}</h2>

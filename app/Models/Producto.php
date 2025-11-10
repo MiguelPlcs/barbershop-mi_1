@@ -18,5 +18,6 @@ class Producto extends Model
         'precio',
         'imagen',
         'stock',
+        'categoria',
     ];
 }
