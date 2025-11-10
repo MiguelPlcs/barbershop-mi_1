@@ -141,20 +141,6 @@ body {
     right: -8px;
 }
 
-.header-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: block;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-}
-.header-avatar {
-    display: inline-block;
-    margin-right: 6px;
-}
-
 .search-row {
     padding: 20px 0 12px; /* más espacio debajo del buscador */
 }

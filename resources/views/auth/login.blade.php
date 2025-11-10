@@ -50,5 +50,9 @@
                 </x-primary-button>
             </div>
         </div>
+        <div class="mt-4 text-center">
+            <span class="text-sm text-gray-600 dark:text-gray-400">¿No tienes cuenta?</span>
+            <a href="{{ url('/register') }}" class="ms-2 underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Registrarse</a>
+        </div>
     </form>
 </x-guest-layout>

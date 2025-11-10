@@ -33,7 +33,8 @@ class ProductoController extends Controller
     // Comprar producto (solo user)
     public function comprar(Request $request, Producto $producto)
     {
-        if ($producto->stock > 0) {
+        // Compra directa (simulada): decrementa stock en 1
+        if (isset($producto->stock) && $producto->stock > 0) {
             $producto->stock -= 1;
             $producto->save();
             return redirect()->back()->with('success', '¡Compra realizada con éxito!');
@@ -44,5 +45,64 @@ class ProductoController extends Controller
     public function show(Producto $producto)
     {
         return view('productos.show', compact('producto'));
+    }
+
+    // Añadir al carrito (sesión)
+    public function addToCart(Request $request, Producto $producto)
+    {
+        $qty = max(1, (int) $request->input('qty', 1));
+        $cart = session('cart', []);
+        $id = (string) ($producto->_id ?? $producto->id);
+
+        if (isset($cart[$id])) {
+            $cart[$id]['qty'] += $qty;
+        } else {
+            $cart[$id] = [
+                'producto_id' => $id,
+                'nombre' => $producto->nombre,
+                'precio' => $producto->precio,
+                'qty' => $qty,
+                'imagen' => $producto->imagen ?? null,
+            ];
+        }
+
+        session(['cart' => $cart]);
+
+        return redirect()->back()->with('success', 'Producto añadido al carrito.');
+    }
+
+    // Ver carrito
+    public function cart()
+    {
+        $cart = session('cart', []);
+        return view('cart.index', compact('cart'));
+    }
+
+    // Simular checkout: decrementar stock si disponible y vaciar carrito
+    public function checkout(Request $request)
+    {
+        $cart = session('cart', []);
+
+        if (empty($cart)) {
+            return redirect()->back()->with('error', 'El carrito está vacío.');
+        }
+
+        foreach ($cart as $item) {
+            $producto = Producto::find($item['producto_id']);
+            if (!$producto) {
+                return redirect()->back()->with('error', "Producto {$item['nombre']} no encontrado.");
+            }
+            $qty = $item['qty'];
+            if (isset($producto->stock) && $producto->stock >= $qty) {
+                $producto->stock -= $qty;
+                $producto->save();
+            } else {
+                return redirect()->back()->with('error', "Stock insuficiente para {$producto->nombre}.");
+            }
+        }
+
+        // Vaciar carrito y simular éxito
+        session()->forget('cart');
+        return redirect()->route('productos.public')->with('success', 'Compra simulada completada.');
     }
 }
