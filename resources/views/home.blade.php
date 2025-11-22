@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Barbershop</title>
+    <!-- Favicon (logo en la pestaña) -->
+    <link rel="icon" href="{{ asset('images/logo.png') }}?v=2" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}?v=2" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}?v=2">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
@@ -212,25 +216,31 @@
                                         <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
                                         <div class="flex items-center gap-4">
                                             <span class="text-2xl font-extrabold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
-                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart">
+                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart" style="display:inline-block; margin:0;">
                                                 @csrf
                                                 @if($stock === null)
                                                     <input type="hidden" name="qty" value="1">
-                                                    <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                                    <button type="submit" class="btn-icon btn-cart" aria-label="Añadir al carrito">
+                                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+                                                    </button>
                                                 @else
                                                     @if($stock <= 0)
                                                         <span class="text-red-300 font-semibold">Agotado</span>
-                                                        <button type="submit" class="btn btn-primary" disabled>Añadir al carrito</button>
+                                                        <button type="submit" class="btn-icon btn-cart" disabled aria-label="Añadir al carrito" title="Agotado">
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+                                                        </button>
                                                     @else
-                                                        <label class="inline-flex items-center">
-                                                            <input type="number" name="qty" min="1" max="{{ $stock }}" value="1" class="w-20 px-2 py-1 rounded border bg-white text-black" />
-                                                        </label>
-                                                        <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                                                        <input type="hidden" name="qty" value="1">
+                                                        <button type="submit" class="btn-icon btn-cart" aria-label="Añadir al carrito">
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+                                                        </button>
                                                         <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
                                                     @endif
                                                 @endif
                                             </form>
-                                            <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn btn-secondary">Ver detalle</a>
+                                            <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn-icon btn-detail" aria-label="Ver detalle">
+                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 001.57-5.34C15.29 5.59 12.7 3 9.5 3S3.71 5.59 3.71 8.39 6.3 13.78 9.5 13.78c1.61 0 3.09-.59 4.23-1.56l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 12c-1.93 0-3.5-1.57-3.5-3.5S7.57 5 9.5 5 13 6.57 13 8.5 11.43 12 9.5 12z"/></svg>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -248,44 +258,9 @@
                 <button class="carousel-btn next" aria-label="Siguiente" onclick="nextSlide()">›</button>
             </section>
 
-    <script>
-        // Clamp qty inputs in slides so the user cannot type more than max stock
-        document.addEventListener('DOMContentLoaded', function () {
-            function clampInput(el) {
-                const min = parseInt(el.min || 1);
-                const max = parseInt(el.max || 0);
-                let val = parseInt(el.value || 1);
-                if (isNaN(val) || val < min) val = min;
-                if (max > 0 && val > max) {
-                    el.value = max;
-                    // small feedback
-                    const msg = document.createElement('div');
-                    msg.textContent = 'Cantidad ajustada al stock disponible (' + max + ')';
-                    msg.style.color = '#b91c1c';
-                    msg.style.fontSize = '12px';
-                    msg.style.marginTop = '6px';
-                    el.parentNode.appendChild(msg);
-                    setTimeout(() => msg.remove(), 2500);
-                    return;
-                }
-                el.value = val;
-            }
+    <!-- Removed inline qty-clamp script because quantity selector removed from carousel -->
 
-            document.querySelectorAll('article.hero-slide input[type="number"][name="qty"]').forEach(input => {
-                input.addEventListener('input', function (e) {
-                    const max = parseInt(this.max || 0);
-                    const min = parseInt(this.min || 1);
-                    let v = parseInt(this.value || 0);
-                    if (isNaN(v)) v = min;
-                    if (max > 0 && v > max) this.value = max;
-                    else if (v < min) this.value = min;
-                });
-                input.addEventListener('change', function (e) { clampInput(this); });
-            });
-         });
-         </script>
-
-            <div class="promo-strip">Domicilio gratis en <strong>Tutunendo, Cabi, Tanando y Tado</strong></div>
+            <div class="promo-strip">Domicilio gratis en <strong>barrios centrales</strong></div>
 
             <section class="quick-links">
                 <a class="card" href="{{ route('productos.public') }}">Ver catálogo</a>

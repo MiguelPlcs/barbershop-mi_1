@@ -1,58 +1,60 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <!-- Use custom styles to avoid Breeze look -->
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+    <div style="display:flex; align-items:center; justify-content:center; min-height:72vh; padding:40px 16px;">
+        <div class="recuadro" style="width:100%; max-width:460px;">
+            @if(session('status'))
+                <div style="background:rgba(255,255,255,0.04); padding:10px 12px; border-radius:8px; margin-bottom:12px; color:#fff;">{{ session('status') }}</div>
+            @endif
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-between mt-4">
-            <div>
-                <a href="{{ url('/') }}" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                    Volver a inicio
-                </a>
+            <div style="text-align:center; margin-bottom:12px;">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height:64px; display:block; margin:0 auto 8px;" />
+                <h3 style="color:#ffd54f; margin:0; font-size:1.25rem;">Bienvenido — Inicia sesión</h3>
             </div>
-            <div class="flex items-center gap-2">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                        ¿Olvidaste tu contraseña?
-                    </a>
-                @endif
 
-                <x-primary-button class="ms-3">
-                    Inicia sesión
-                </x-primary-button>
-            </div>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                <div style="margin-bottom:12px;">
+                    <label for="email" style="display:block; color:#cbd5e1; font-weight:700; margin-bottom:6px;">Email</label>
+                    <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="search-input" style="width:100%;" />
+                    @if($errors->has('email'))
+                        <div style="color:#ffb4a2; margin-top:6px; font-size:0.9rem;">{{ $errors->first('email') }}</div>
+                    @endif
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label for="password" style="display:block; color:#cbd5e1; font-weight:700; margin-bottom:6px;">Contraseña</label>
+                    <input id="password" name="password" type="password" required autocomplete="current-password" class="search-input" style="width:100%;" />
+                    @if($errors->has('password'))
+                        <div style="color:#ffb4a2; margin-top:6px; font-size:0.9rem;">{{ $errors->first('password') }}</div>
+                    @endif
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                    <label style="display:flex; align-items:center; gap:8px; color:#cbd5e1; font-size:0.95rem;">
+                        <input type="checkbox" name="remember" style="width:16px; height:16px;" />
+                        <span>Recordarme</span>
+                    </label>
+
+                    <div style="text-align:right;">
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" style="color:#cbd5e1; text-decoration:underline; font-size:0.92rem;">¿Olvidaste tu contraseña?</a>
+                        @endif
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; align-items:center; justify-content:flex-end;">
+                    <a href="{{ url('/') }}" class="btn-secondary" style="flex:1; text-align:center; padding:10px 12px;">Volver</a>
+                    <button type="submit" class="btn-cart" style="padding:10px 14px; border-radius:8px;">Inicia sesión</button>
+                </div>
+
+                <div style="margin-top:14px; text-align:center; color:#cbd5e1; font-size:0.92rem;">
+                    ¿No tienes cuenta? <a href="{{ url('/register') }}" style="color:#ffd54f; text-decoration:underline;">Regístrate</a>
+                </div>
+            </form>
         </div>
-        <div class="mt-4 text-center">
-            <span class="text-sm text-gray-600 dark:text-gray-400">¿No tienes cuenta?</span>
-            <a href="{{ url('/register') }}" class="ms-2 underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Registrarse</a>
-        </div>
-    </form>
+    </div>
+
 </x-guest-layout>

@@ -10,6 +10,34 @@
 
         <div class="py-12 bg-white min-h-screen">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <!-- Opciones del panel administrador -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                    <a href="{{ route('admin.stock.report') }}" class="block p-4 bg-white border rounded-lg shadow hover:shadow-md">
+                        <h4 class="font-semibold">Reporte de stock</h4>
+                        <p class="text-sm text-gray-500">Ver niveles y alertas de inventario</p>
+                    </a>
+
+                    <a href="{{ route('admin.orders.index') }}" class="block p-4 bg-white border rounded-lg shadow hover:shadow-md">
+                        <h4 class="font-semibold">Atender pedidos</h4>
+                        <p class="text-sm text-gray-500">Revisar y procesar pedidos</p>
+                    </a>
+
+                    <a href="{{ route('admin.shipments.index') }}" class="block p-4 bg-white border rounded-lg shadow hover:shadow-md">
+                        <h4 class="font-semibold">Gestionar envíos</h4>
+                        <p class="text-sm text-gray-500">Seguimiento y estados de envío</p>
+                    </a>
+
+                    <a href="{{ route('admin.returns.index') }}" class="block p-4 bg-white border rounded-lg shadow hover:shadow-md">
+                        <h4 class="font-semibold">Gestionar devoluciones</h4>
+                        <p class="text-sm text-gray-500">Revisar solicitudes de devolución</p>
+                    </a>
+
+                    <a href="{{ route('admin.users.index') }}" class="block p-4 bg-white border rounded-lg shadow hover:shadow-md">
+                        <h4 class="font-semibold">Gestionar usuarios</h4>
+                        <p class="text-sm text-gray-500">Crear, editar y asignar roles</p>
+                    </a>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Resumen -->
                     <div class="lg:col-span-1 bg-gray-900 shadow sm:rounded-lg p-6 text-white">

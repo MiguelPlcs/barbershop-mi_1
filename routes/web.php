@@ -45,6 +45,12 @@ Route::middleware(['auth'])->group(function () {
     // Panel de administración y CRUD de productos
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+        // Panel admin: nuevas rutas funcionales
+        Route::get('/stock-report', [AdminController::class, 'stockReport'])->name('stock.report');
+        Route::get('/orders', [AdminController::class, 'orders'])->name('orders.index');
+        Route::get('/shipments', [AdminController::class, 'shipments'])->name('shipments.index');
+        Route::get('/returns', [AdminController::class, 'returns'])->name('returns.index');
+        Route::get('/users', [AdminController::class, 'users'])->name('users.index');
         Route::resource('productos', AdminProductoController::class);
     });
 
