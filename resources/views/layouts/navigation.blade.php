@@ -37,7 +37,8 @@
                             </form>
                         </x-slot>
                     </x-dropdown>
-                    {{-- Cart toggle for authenticated users --}}
+                    {{-- Cart toggle for authenticated users (hidden for admins) --}}
+                    @if(!(Auth::check() && Auth::user()->role === 'admin'))
                     <div style="margin-left:12px; display:inline-block; position:relative">
                         <a href="#" id="cart-toggle" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white dark:text-white dark:bg-gray-800 hover:text-gray-300 focus:outline-none transition ease-in-out duration-150" title="Carrito">🛒<span class="cart-count ml-2">0</span></a>
                         <!-- Overlay for drawer -->
@@ -55,13 +56,11 @@
                             </div>
                             <div style="padding:12px; display:flex; gap:8px; justify-content:space-between;">
                                 <a href="{{ route('cart.index') }}" class="btn btn-secondary" style="flex:1">Ver carrito</a>
-                                <form action="{{ route('cart.checkout') }}" method="POST" style="margin:0">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success">Pagar</button>
-                                </form>
+                                <a href="{{ route('cart.payment') }}" class="btn btn-success" style="display:inline-block">Pagar</a>
                             </div>
                         </aside>
                     </div>
+                    @endif
                 @else
                     {{-- Mensaje para invitados eliminado por petición del cliente --}}
                 @endauth

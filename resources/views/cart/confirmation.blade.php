@@ -9,6 +9,10 @@
                 <h3 class="text-2xl font-bold mb-4">Gracias por tu compra</h3>
 
                 <p class="mb-4">Número de orden: <strong>{{ $order->order_number }}</strong></p>
+                @if(!empty($order->payer_name) || !empty($order->payment_method))
+                    <p class="mb-2">Nombre de pago: <strong>{{ $order->payer_name ?? 'N/A' }}</strong></p>
+                    <p class="mb-2">Método de pago: <strong>{{ ucfirst($order->payment_method ?? 'N/A') }}</strong></p>
+                @endif
 
                 <table class="w-full text-left mb-6">
                     <thead>
@@ -37,8 +41,8 @@
                     </tfoot>
                 </table>
 
-                <div class="flex justify-end gap-3">
-                    <a href="{{ route('productos.public') }}" class="btn btn-secondary cart-btn-blue">Seguir comprando</a>
+                    <div class="flex justify-end gap-3">
+                    <a href="{{ route('productos.user') }}" class="btn btn-secondary cart-btn-blue">Seguir comprando</a>
                     <button onclick="window.print();" class="btn btn-primary cart-btn-blue">Imprimir comprobante</button>
                 </div>
             </div>

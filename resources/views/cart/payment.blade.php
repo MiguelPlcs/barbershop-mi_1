@@ -45,12 +45,13 @@
                     <form action="{{ route('cart.process_payment') }}" method="POST">
                         @csrf
                         <div class="grid grid-cols-1 gap-4">
-                            <input name="card_name" placeholder="Nombre en la tarjeta" class="border p-2 rounded" required />
-                            <input name="card_number" placeholder="Número de tarjeta" class="border p-2 rounded" required />
-                            <div class="grid grid-cols-3 gap-2">
-                                <input name="expiry" placeholder="MM/AA" class="border p-2 rounded" required />
-                                <input name="cvc" placeholder="CVC" class="border p-2 rounded" required />
-                            </div>
+                            <input name="payer_name" placeholder="Nombre completo" class="border p-2 rounded" required />
+                            <select name="payment_method" class="border p-2 rounded" required>
+                                <option value="">Selecciona método de pago</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
                         </div>
 
                         <div class="mt-4 flex justify-end gap-3">

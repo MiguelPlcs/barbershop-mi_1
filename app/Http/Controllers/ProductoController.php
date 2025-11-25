@@ -279,13 +279,17 @@ class ProductoController extends Controller
             }
         }
 
-        // Crear orden (simulada)
+        // Crear orden (simulada) y almacenar datos de pago (simulación)
         $orderNumber = strtoupper('ORD-' . substr(uniqid(), -8));
+        $payerName = $request->input('payer_name');
+        $paymentMethod = $request->input('payment_method');
         $order = Order::create([
             'user_id' => Auth::id(),
             'order_number' => $orderNumber,
             'items' => $orderItems,
             'total' => $total,
+            'payer_name' => $payerName,
+            'payment_method' => $paymentMethod,
         ]);
 
         // Descontar stock
@@ -299,7 +303,7 @@ class ProductoController extends Controller
         $cartModel->items()->delete();
         $cartModel->delete();
 
-        return redirect()->route('cart.confirmation', ['order' => $order->id]);
+        return redirect()->route('cart.confirmation', ['order' => $order->id])->with('success', 'Compra realizada con éxito.');
     }
 
     // Generar vista de factura para invitado (sin registro)
