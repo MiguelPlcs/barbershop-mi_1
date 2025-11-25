@@ -142,7 +142,7 @@
                     @auth
                         <a href="{{ route('profile.edit') }}" class="btn-circle" title="Mi perfil">👤</a>
                     @else
-                        <a href="{{ url('/login') }}" class="btn-circle" title="Iniciar sesión">👤</a>
+                        <a href="{{ url('/login') }}" class="btn-circle" title="Iniciar sesión">Iniciar sesión</a>
                     @endauth
                 </div>
             </div>
@@ -201,9 +201,7 @@
                                                     <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
                                                 @endif
                                             @endif
-                                            <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn-icon btn-detail" aria-label="Ver detalle">
-                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 001.57-5.34C15.29 5.59 12.7 3 9.5 3S3.71 5.59 3.71 8.39 6.3 13.78 9.5 13.78c1.61 0 3.09-.59 4.23-1.56l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 12c-1.93 0-3.5-1.57-3.5-3.5S7.57 5 9.5 5 13 6.57 13 8.5 11.43 12 9.5 12z"/></svg>
-                                            </a>
+                                            {{-- Detalle eliminado en la página principal por petición: no mostrar la lupa aquí --}}
                                         </div>
                                     </div>
                                 </div>
@@ -225,11 +223,7 @@
 
             <div class="promo-strip">Domicilio gratis en <strong>barrios centrales</strong></div>
 
-            <section class="quick-links">
-                <a class="card" href="{{ route('productos.public') }}">Ver catálogo</a>
-                <a class="card" href="#">Ofertas</a>
-                <a class="card" href="#">Novedades</a>
-            </section>
+            <!-- quick-links removed per request -->
             <!-- Nota: la lista de productos se ha integrado en el slide del carrusel -->
         </main>
 
