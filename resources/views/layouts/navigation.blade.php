@@ -37,6 +37,31 @@
                             </form>
                         </x-slot>
                     </x-dropdown>
+                    {{-- Cart toggle for authenticated users --}}
+                    <div style="margin-left:12px; display:inline-block; position:relative">
+                        <a href="#" id="cart-toggle" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white dark:text-white dark:bg-gray-800 hover:text-gray-300 focus:outline-none transition ease-in-out duration-150" title="Carrito">🛒<span class="cart-count ml-2">0</span></a>
+                        <!-- Overlay for drawer -->
+                        <div id="mini-cart-overlay" style="display:none; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.45); z-index:50;"></div>
+                        <!-- Drawer (hidden by translateX) -->
+                        <aside id="mini-cart-drawer" aria-hidden="true" style="position:fixed; right:0; top:0; height:100vh; width:360px; transform:translateX(100%); transition:transform .22s ease; background:#fff; color:#111; border-left:1px solid rgba(0,0,0,0.06); z-index:60; overflow:auto; display:flex; flex-direction:column;">
+                            <div style="padding:14px; border-bottom:1px solid #eee; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+                                <div>Carrito</div>
+                                <button id="mini-cart-close" style="background:transparent;border:none;font-size:18px;cursor:pointer">✕</button>
+                            </div>
+                            <div id="mini-cart-items" style="flex:1; max-height:calc(100vh - 220px); overflow:auto; padding:12px"></div>
+                            <div style="padding:12px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                                <strong>Total:</strong>
+                                <span id="mini-cart-total">$0</span>
+                            </div>
+                            <div style="padding:12px; display:flex; gap:8px; justify-content:space-between;">
+                                <a href="{{ route('cart.index') }}" class="btn btn-secondary" style="flex:1">Ver carrito</a>
+                                <form action="{{ route('cart.checkout') }}" method="POST" style="margin:0">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success">Pagar</button>
+                                </form>
+                            </div>
+                        </aside>
+                    </div>
                 @else
                     {{-- Mensaje para invitados eliminado por petición del cliente --}}
                 @endauth
@@ -149,14 +174,56 @@
                 .catch(err => console.error('Error fetching cart', err));
         }
 
+        // Simple toast notification
+        function showToast(message) {
+            try {
+                const t = document.createElement('div');
+                t.textContent = message;
+                t.style.position = 'fixed';
+                t.style.right = '20px';
+                t.style.top = '20px';
+                t.style.background = 'rgba(15,23,42,0.95)';
+                t.style.color = '#fff';
+                t.style.padding = '10px 14px';
+                t.style.borderRadius = '8px';
+                t.style.boxShadow = '0 8px 20px rgba(2,6,23,0.4)';
+                t.style.zIndex = 9999;
+                t.style.opacity = '0';
+                t.style.transition = 'opacity .18s ease';
+                document.body.appendChild(t);
+                requestAnimationFrame(() => { t.style.opacity = '1'; });
+                setTimeout(() => { t.style.opacity = '0'; setTimeout(()=>t.remove(),200); }, 3000);
+            } catch (e) { console.debug('Toast error', e); }
+        }
+
+        // Drawer open/close helpers
+        const miniCartOverlay = document.getElementById('mini-cart-overlay');
+        const miniCartDrawer = document.getElementById('mini-cart-drawer');
+        function openDrawer() {
+            if (miniCartOverlay) miniCartOverlay.style.display = 'block';
+            if (miniCartDrawer) { miniCartDrawer.style.transform = 'translateX(0)'; miniCartDrawer.setAttribute('aria-hidden', 'false'); }
+        }
+        function closeDrawer() {
+            if (miniCartOverlay) miniCartOverlay.style.display = 'none';
+            if (miniCartDrawer) { miniCartDrawer.style.transform = 'translateX(100%)'; miniCartDrawer.setAttribute('aria-hidden', 'true'); }
+        }
+
         // Toggle
         if (cartToggle) {
             cartToggle.addEventListener('click', function (e) {
                 e.preventDefault();
-                if (miniCart.style.display === 'block') { miniCart.style.display = 'none'; }
-                else { fetchCart(); miniCart.style.display = 'block'; }
+                // Open drawer and fetch contents
+                fetchCart();
+                openDrawer();
             });
         }
+
+        // Close via overlay or close button
+        if (miniCartOverlay) {
+            miniCartOverlay.addEventListener('click', function () { closeDrawer(); });
+        }
+        const miniCartClose = document.getElementById('mini-cart-close');
+        if (miniCartClose) miniCartClose.addEventListener('click', function () { closeDrawer(); });
 
         // Delegate remove clicks
         document.addEventListener('click', function (e) {
@@ -218,14 +285,16 @@
                 fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                     .then(r => r.json())
                     .then(json => {
-                        if (json.success) {
-                            renderCart({ items: json.items, total_items: json.total_items, total_price: json.total_price });
-                            miniCart.style.display = 'block';
-                            setTimeout(() => { miniCart.style.display = 'none'; }, 3500);
-                        } else {
-                            alert(json.message || 'Error al añadir al carrito');
-                        }
-                    }).catch(err => console.error('Add to cart error', err));
+                            if (json.success) {
+                                renderCart({ items: json.items, total_items: json.total_items, total_price: json.total_price });
+                                // open drawer and keep it open
+                                openDrawer();
+                                // show toast confirmation
+                                showToast('Producto agregado al carrito');
+                            } else {
+                                showToast(json.message || 'Error al añadir al carrito');
+                            }
+                        }).catch(err => { console.error('Add to cart error', err); showToast('Error al añadir al carrito'); });
             }
         });
 

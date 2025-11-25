@@ -71,8 +71,9 @@
                                     </div>
                                 </div>
                                 <div class="product-actions">
-                                    <form action="{{ route('productos.comprar', $producto->_id) }}" method="POST" style="margin:0">
+                                    <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart" style="margin:0">
                                         @csrf
+                                        <input type="hidden" name="qty" value="1">
                                         <button type="submit" class="btn-buy" {{ ($stock !== null && $stock <= 0) ? 'disabled' : '' }}>Comprar</button>
                                     </form>
                                     <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn-view">Ver</a>
