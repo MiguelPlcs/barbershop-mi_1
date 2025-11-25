@@ -56,7 +56,7 @@
                                     @if($hasImage)
                                         <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}">
                                     @else
-                                        <img src="{{ asset('images/no-image.png') }}" alt="Sin imagen">
+                                        <img src="{{ asset('images/no-image.svg') }}" alt="Sin imagen">
                                     @endif
                                     <div class="price-badge">${{ number_format($producto->precio,0,',','.') }}</div>
                                 </div>

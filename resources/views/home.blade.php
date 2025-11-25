@@ -144,30 +144,6 @@
                     @else
                         <a href="{{ url('/login') }}" class="btn-circle" title="Iniciar sesión">👤</a>
                     @endauth
-
-                    <!-- Carrito (ubicado junto al login/perfil) -->
-                    <div class="ms-4 relative" style="display:inline-block;">
-                        <a href="#" id="cart-toggle" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white dark:text-white dark:bg-gray-800 hover:text-gray-300 focus:outline-none transition ease-in-out duration-150" title="Carrito">🛒<span class="cart-count ml-2">0</span></a>
-                        <div id="mini-cart" style="display:none; position:absolute; right:0; top:48px; width:320px; background:#fff; color:#111; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.2); z-index:50; overflow:hidden;">
-                            <div style="padding:12px; border-bottom:1px solid #eee; font-weight:700">Carrito</div>
-                            <div id="mini-cart-items" style="max-height:240px; overflow:auto; padding:8px"></div>
-                            <div style="padding:12px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                                <strong>Total:</strong>
-                                <span id="mini-cart-total">$0</span>
-                            </div>
-                            <div style="padding:8px; display:flex; gap:8px; justify-content:space-between;">
-                                <a href="{{ route('cart.index') }}" class="btn btn-secondary" style="flex:1">Ver carrito</a>
-                                @auth
-                                    <form action="{{ route('cart.checkout') }}" method="POST" style="margin:0">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success">Pagar</button>
-                                    </form>
-                                @else
-                                    <a href="{{ route('login') }}" class="btn btn-primary" style="flex:1">Inicia sesión</a>
-                                @endauth
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="container full search-row">
@@ -216,28 +192,15 @@
                                         <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
                                         <div class="flex items-center gap-4">
                                             <span class="text-2xl font-extrabold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
-                                            <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart" style="display:inline-block; margin:0;">
-                                                @csrf
-                                                @if($stock === null)
-                                                    <input type="hidden" name="qty" value="1">
-                                                    <button type="submit" class="btn-icon btn-cart" aria-label="Añadir al carrito">
-                                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
-                                                    </button>
+                                            @if($stock === null)
+                                                {{-- sin info de stock, solo mostrar enlace de detalle (no añadir al carrito) --}}
+                                            @else
+                                                @if($stock <= 0)
+                                                    <span class="text-red-300 font-semibold">Agotado</span>
                                                 @else
-                                                    @if($stock <= 0)
-                                                        <span class="text-red-300 font-semibold">Agotado</span>
-                                                        <button type="submit" class="btn-icon btn-cart" disabled aria-label="Añadir al carrito" title="Agotado">
-                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
-                                                        </button>
-                                                    @else
-                                                        <input type="hidden" name="qty" value="1">
-                                                        <button type="submit" class="btn-icon btn-cart" aria-label="Añadir al carrito">
-                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45C8.89 16.37 9.5 17 10.25 17H19v-2h-8.25l.9-1.63L18 6H7zM7 18a1 1 0 100 2 1 1 0 000-2zm10 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
-                                                        </button>
-                                                        <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
-                                                    @endif
+                                                    <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
                                                 @endif
-                                            </form>
+                                            @endif
                                             <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn-icon btn-detail" aria-label="Ver detalle">
                                                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 001.57-5.34C15.29 5.59 12.7 3 9.5 3S3.71 5.59 3.71 8.39 6.3 13.78 9.5 13.78c1.61 0 3.09-.59 4.23-1.56l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 12c-1.93 0-3.5-1.57-3.5-3.5S7.57 5 9.5 5 13 6.57 13 8.5 11.43 12 9.5 12z"/></svg>
                                             </a>
