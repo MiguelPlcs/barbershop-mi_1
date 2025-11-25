@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Carrito</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Factura - Invitado</h2>
     </x-slot>
 
     <div class="py-12 bg-white min-h-screen">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow sm:rounded-lg p-6">
-                <h3 class="text-2xl font-bold mb-4">Tu carrito</h3>
+                <h3 class="text-2xl font-bold mb-4">Factura (sin registro)</h3>
 
                 @if(empty($cart))
-                    <p class="text-gray-600">Tu carrito está vacío.</p>
+                    <p class="text-gray-600">No hay productos en el carrito.</p>
                 @else
                     <table class="w-full text-left">
                         <thead>
@@ -21,9 +21,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @php $total = 0; @endphp
                         @foreach($cart as $item)
-                            @php $subtotal = $item['precio'] * $item['qty']; $total += $subtotal; @endphp
+                            @php $subtotal = $item['precio'] * $item['qty']; @endphp
                             <tr class="border-t">
                                 <td class="py-3">{{ $item['nombre'] }}</td>
                                 <td class="py-3">${{ number_format($item['precio'], 0, ',', '.') }}</td>
@@ -40,13 +39,15 @@
                         </tfoot>
                     </table>
 
-                    <div class="mt-6 flex justify-end gap-3">
-                        @if(Auth::check())
-                            <a href="{{ route('cart.payment') }}" class="btn btn-success cart-btn-blue">Ingresar datos de pago para culminar la compra</a>
-                        @else
-                            <a href="{{ route('register') }}" class="btn btn-primary cart-btn-blue">Registrarse para pagar</a>
-                            <a href="{{ route('cart.guest_invoice') }}" class="btn btn-secondary cart-btn-blue">Generar factura sin registro</a>
-                        @endif
+                    <div class="mt-6 flex justify-between items-center">
+                        <p class="text-sm text-gray-600">Esta factura se genera sin crear una cuenta. Guarda la información si la necesitas.</p>
+                        <div class="flex gap-3">
+                            <a href="{{ route('productos.public') }}" class="btn btn-secondary cart-btn-blue">Seguir comprando</a>
+                            <form method="POST" action="{{ route('productos.public') }}">
+                                @csrf
+                                <button type="button" onclick="window.print();" class="btn btn-primary cart-btn-blue">Imprimir / Descargar</button>
+                            </form>
+                        </div>
                     </div>
                 @endif
             </div>

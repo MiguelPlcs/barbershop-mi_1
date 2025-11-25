@@ -28,6 +28,8 @@ Route::get('/productos/{producto}', [ProductoController::class, 'show'])->name('
 // Rutas públicas relacionadas con el carrito
 Route::post('/cart/add/{producto}', [ProductoController::class, 'addToCart'])->name('cart.add');
 Route::get('/cart', [ProductoController::class, 'cart'])->name('cart.index');
+// Ruta para generar factura sin registro (invitado)
+Route::get('/cart/guest-invoice', [ProductoController::class, 'guestInvoice'])->name('cart.guest_invoice');
 
 // Endpoints para gestión del carrito (AJAX)
 Route::get('/cart/data', [\App\Http\Controllers\CartController::class, 'data'])->name('cart.data');
@@ -41,6 +43,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Checkout del carrito (solo para usuarios autenticados)
     Route::post('/cart/checkout', [ProductoController::class, 'checkout'])->name('cart.checkout');
+
+    // Formulario de pago para usuarios autenticados
+    Route::get('/cart/payment', [ProductoController::class, 'paymentForm'])->name('cart.payment');
+    Route::post('/cart/payment', [ProductoController::class, 'processPayment'])->name('cart.process_payment');
+
+    // Página de confirmación de la orden
+    Route::get('/cart/confirmation/{order}', [ProductoController::class, 'confirmation'])->name('cart.confirmation');
 
     // Panel de administración y CRUD de productos
     Route::prefix('admin')->name('admin.')->group(function () {

@@ -2,4 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Elimina todos los estilos personalizados de botones agregados anteriormente */
+/* Estilos personalizados para la aplicación */
+
+/* Botones del carrito: borde azul, fondo transparente, texto oscuro; mantiene compatibilidad con clases existentes */
+.cart-btn-blue {
+    @apply border border-blue-500 text-blue-700 bg-transparent hover:bg-blue-50 px-3 py-2 rounded;
+}
+
+/* Variante para botones primarios dentro del carrito (si usan .btn-primary) */
+.cart .btn,
+.cart .btn-primary,
+.cart-btn-blue {
+    border-width: 1px;
+}
