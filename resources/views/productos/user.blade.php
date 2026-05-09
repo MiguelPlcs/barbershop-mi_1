@@ -1,88 +1,66 @@
-{{-- filepath: resources/views/productos/user.blade.php --}}
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Catálogo de Productos (Usuario registrado)
-        </h2>
-    </x-slot>
+    <div style="background:#F4F6F9; min-height:calc(100vh - 64px); font-family:'Outfit',sans-serif; padding-top: 32px;">
 
-    <div class="py-12">
-        <style>
-            /* Inline styles to ensure immediate effect for this view */
-            .user-products-grid{display:grid;grid-template-columns:1fr;gap:18px}
-            .product-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(2,6,23,0.28);transition:transform .18s ease,box-shadow .18s}
-            .product-card:hover{transform:translateY(-8px);box-shadow:0 18px 40px rgba(2,6,23,0.45)}
-            .product-media{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:4/3;min-height:150px;background:#0f1724}
-            .product-media img{width:100%;height:100%;object-fit:cover;display:block}
-            .price-badge{position:absolute;top:10px;right:10px;background:linear-gradient(180deg,#ffd54f,#f0b429);color:#08121a;padding:6px 10px;border-radius:999px;font-weight:800;box-shadow:0 6px 18px rgba(2,6,23,0.18)}
-            .product-body{padding:14px 16px;color:#cbd5e1}
-            .product-title{font-size:1.1rem;margin:0 0 6px;color:#ffd54f;font-weight:800}
-            .product-desc{margin:0 0 10px;font-size:.95rem;color:#cbd5e1}
-            .product-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
-            .product-meta .stock{padding:6px 10px;border-radius:999px;font-weight:700;font-size:.85rem}
-            .in-stock{background:#052e12;color:#9ae6b4}
-            .out-stock{background:#2b0b0b;color:#ffb4a2}
-            .product-actions{display:flex;gap:10px;padding:12px 16px 16px 16px;justify-content:flex-end}
-            .btn-buy{background:linear-gradient(180deg,#16a34a,#12803a);color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer}
-            .btn-view{background:transparent;color:#ffd54f;border:2px solid rgba(255,213,79,0.12);padding:8px 12px;border-radius:8px;font-weight:700}
-            @media(min-width:700px){.user-products-grid{grid-template-columns:repeat(2,1fr)}}
-            @media(min-width:1100px){.user-products-grid{grid-template-columns:repeat(3,1fr)}}
-        </style>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    @if(session('success'))
-                        <div class="alert alert-success mb-4">{{ session('success') }}</div>
-                    @endif
-                    @if(session('error'))
-                        <div class="alert alert-danger mb-4">{{ session('error') }}</div>
-                    @endif
+        <div style="max-width:1400px; margin:0 auto; padding:32px 24px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:24px;">
+                @forelse($productos as $producto)
+                    <div style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.07); display:flex; flex-direction:column; transition:transform .2s, box-shadow .2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.07)'">
+                        
+                        {{-- Image --}}
+                        <div style="height:180px; background:linear-gradient(135deg,#111827,#1a2332); display:flex; align-items:center; justify-content:center; position:relative;">
+                            @if($producto->imagen)
+                                <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" style="width:100%; height:100%; object-fit:cover;">
+                            @else
+                                <i class="fas fa-box" style="font-size:3.5rem; color:rgba(255,255,255,0.2);"></i>
+                            @endif
+                            
+                            {{-- Stock Badge --}}
+                            <div style="position:absolute; top:12px; right:12px;">
+                                @if(($producto->stock ?? 0) <= 0)
+                                    <span style="background:#C62828; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">Agotado</span>
+                                @elseif($producto->stock <= 5)
+                                    <span style="background:#F57F17; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">¡Solo {{ $producto->stock }}!</span>
+                                @else
+                                    <span style="background:#2E7D32; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">Disponible</span>
+                                @endif
+                            </div>
+                        </div>
 
-                    <div class="user-products-grid">
-                        @foreach($productos as $producto)
-                            @php
-                                $stock = isset($producto->stock) ? (int)$producto->stock : null;
-                                $hasImage = false;
-                                if (!empty($producto->imagen)) {
-                                    try {
-                                        $hasImage = \Illuminate\Support\Facades\Storage::disk('public')->exists($producto->imagen);
-                                    } catch (\Exception $e) {
-                                        $hasImage = false;
-                                    }
-                                }
-                            @endphp
-                            <article class="product-card">
-                                <div class="product-media">
-                                    @if($hasImage)
-                                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}">
-                                    @else
-                                        <img src="{{ asset('images/no-image.svg') }}" alt="Sin imagen">
-                                    @endif
-                                    <div class="price-badge">${{ number_format($producto->precio,0,',','.') }}</div>
-                                </div>
-                                <div class="product-body">
-                                    <h3 class="product-title">{{ $producto->nombre }}</h3>
-                                    <p class="product-desc">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 120) }}</p>
-                                    <div class="product-meta">
-                                        <div class="price">${{ number_format($producto->precio,0,',','.') }}</div>
-                                        @if($stock !== null)
-                                            <div class="stock {{ $stock > 0 ? 'in-stock' : 'out-stock' }}">{{ $stock > 0 ? "Stock: {$stock}" : 'Agotado' }}</div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="product-actions">
-                                    <form action="{{ route('cart.add', $producto->getKey()) }}" method="POST" class="ajax-add-to-cart" style="margin:0">
-                                        @csrf
-                                        <input type="hidden" name="qty" value="1">
-                                        <button type="submit" class="btn-buy" {{ ($stock !== null && $stock <= 0) ? 'disabled' : '' }}>Comprar</button>
-                                    </form>
-                                    <a href="{{ route('productos.show', $producto->getKey()) }}" class="btn-view">Ver</a>
-                                </div>
-                            </article>
-                        @endforeach
+                        {{-- Info --}}
+                        <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:8px;">
+                            <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#111827;">{{ $producto->nombre }}</h3>
+                            <p style="margin:0; font-size:0.88rem; color:#6B7280; line-height:1.5;">{{ Str::limit($producto->descripcion ?? '', 90) }}</p>
+                            @if($producto->categoria ?? false)
+                                <span style="background:rgba(21,101,192,0.1); color:#1565C0; padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; display:inline-block; width:fit-content; margin-top:4px;">{{ $producto->categoria }}</span>
+                            @endif
+                            <div style="font-size:1.4rem; font-weight:800; color:#1565C0; margin-top:auto; padding-top:12px;">${{ number_format($producto->precio, 0, ',', '.') }}</div>
+                        </div>
+
+                        {{-- Actions --}}
+                        <div style="padding:16px 20px; border-top:1px solid #F4F6F9; display:flex; gap:10px;">
+                            <a href="{{ route('productos.show', $producto->_id ?? $producto->id) }}" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; background:#F4F6F9; color:#374151; border-radius:10px; border:1px solid #E8ECF0; text-decoration:none; font-size:0.88rem; font-weight:700; transition:background .2s;" onmouseover="this.style.background='#E8ECF0'" onmouseout="this.style.background='#F4F6F9'">
+                                <i class="fas fa-eye"></i> Detalles
+                            </a>
+                            <form action="{{ route('cart.add', $producto->_id ?? $producto->id) }}" method="POST" class="ajax-add-to-cart" style="flex:1; margin:0;">
+                                @csrf
+                                <input type="hidden" name="qty" value="1">
+                                <button type="submit" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; background:#111827; color:#fff; border-radius:10px; border:none; font-size:0.88rem; font-weight:700; font-family:'Outfit',sans-serif; cursor:{{ ($producto->stock !== null && $producto->stock <= 0) ? 'not-allowed' : 'pointer' }}; opacity:{{ ($producto->stock !== null && $producto->stock <= 0) ? '0.6' : '1' }}; transition:background .2s;" {{ ($producto->stock !== null && $producto->stock <= 0) ? 'disabled' : '' }} onmouseover="if(!this.disabled) this.style.background='#1a2332'" onmouseout="if(!this.disabled) this.style.background='#111827'">
+                                    <i class="fas fa-cart-plus"></i> Añadir
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="mt-6">{{ $productos->links() }}</div>
-                </div>
+                @empty
+                    <div style="grid-column:1/-1; text-align:center; padding:72px 24px; background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.07);">
+                        <i class="fas fa-box-open" style="font-size:3rem; color:#E8ECF0; display:block; margin-bottom:16px;"></i>
+                        <h3 style="margin:0 0 8px; color:#111827;">No hay productos</h3>
+                        <p style="color:#6B7280; margin:0;">Actualmente no disponemos de productos en la tienda.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <div style="margin-top:32px; display:flex; justify-content:center;">
+                {{ $productos->links() }}
             </div>
         </div>
     </div>

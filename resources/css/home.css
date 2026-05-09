@@ -1,8 +1,29 @@
+:root {
+    /* Palette for a classic barber shop: soft tones of white, blue, black and red accents */
+    --bg-900: #0f1724; /* near-black deep background */
+    --panel: #f8fafc; /* soft white panel */
+    --muted: #9aa7b6; /* muted text */
+    --brand-blue: #1976d2; /* clean blue */
+    --brand-red: #e53935; /* accent red */
+    --accent-yellow: #ffd54f; /* warm yellow for CTAs */
+    --card-dark: #1e293b; /* dark card background */
+    --glass-border: rgba(255, 255, 255, 0.04);
+}
+
 body {
-    background: #181c24;
+    background: linear-gradient(180deg, var(--bg-900), #081021 80%);
     min-height: 100vh;
     margin: 0;
-    /* Removed flex centering and decorative border to allow full-bleed layout */
+    color: #fff;
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        Arial;
 }
 /* Prevent horizontal page scroll; carousel will keep its own horizontal scrolling */
 html,
@@ -10,32 +31,37 @@ body {
     overflow-x: hidden;
 }
 .recuadro {
-    background: #1e293b;
-    /* removed blue border for login card to match design */
-    border: 4px solid rgba(255,255,255,0.03);
-    border-radius: 18px;
-    padding: 32px 40px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.01)
+    );
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
     color: #fff;
-    max-width: 420px;
+    max-width: 520px;
     width: 100%;
 }
 .recuadro h1 {
     text-align: center;
-    margin-bottom: 24px;
-    color: #e53935;
-    letter-spacing: 1px;
+    margin-bottom: 18px;
+    color: var(--brand-red);
+    letter-spacing: 0.6px;
 }
 .info-parrafo {
-    background: #222c3c;
-    border: 2px solid #1976d2;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
     border-radius: 10px;
     margin-bottom: 16px;
     padding: 12px 18px;
-    color: #fff;
-    font-size: 1.08em;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
-    transition: border-color 0.2s;
+    color: var(--muted);
+    font-size: 1.02rem;
+    box-shadow: 0 3px 10px rgba(2, 6, 23, 0.35);
+    transition:
+        border-color 0.18s,
+        transform 0.12s;
 }
 .info-parrafo:last-child {
     margin-bottom: 0;
@@ -64,14 +90,19 @@ body {
     display: block;
 }
 .btn-primary:hover {
-    background: #0d47a1;
-    border-color: #0d47a1;
+    background: color-mix(in srgb, var(--brand-blue) 86%, black 12%);
+    border-color: var(--brand-blue);
     color: #fff;
 }
 .btn-secondary {
-    background: #fff;
-    color: #1976d2;
-    border: 2px solid #1976d2;
+    background: transparent;
+    color: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 .btn-secondary:hover {
     background: #1976d2;
@@ -104,8 +135,11 @@ body {
 }
 
 .btn-cart {
-    background: #ffd54f;
-    color: #111;
+    background: var(--accent-yellow);
+    color: #071029;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
 }
 .btn-cart svg path,
 .btn-cart svg circle {
@@ -113,9 +147,11 @@ body {
 }
 
 .btn-detail {
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+    color: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 10px;
+    border-radius: 8px;
 }
 .btn-detail svg path,
 .btn-detail svg circle {
@@ -172,9 +208,9 @@ body {
 
 /* Ensure logo is visible and sized appropriately */
 .brand .logo {
-    display:block;
-    height:56px !important;
-    width:auto !important;
+    display: block;
+    height: 56px !important;
+    width: auto !important;
 }
 
 /* Small tweak to ensure header layout doesn't overflow */
@@ -202,7 +238,6 @@ header .brand {
     gap: 12px;
     width: 100%;
     max-width: 900px;
-}
 }
 .top-nav a {
     color: #fff;
@@ -296,6 +331,64 @@ header .brand {
     font-size: 1.05rem;
     outline: none;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Form controls and inputs (login, register, checkout) */
+.recuadro input[type="text"],
+.recuadro input[type="email"],
+.recuadro input[type="password"],
+.recuadro input[type="number"],
+.recuadro textarea,
+.recuadro select,
+.search-input {
+    background: var(--panel);
+    color: #071029;
+    border: 1px solid rgba(2, 6, 23, 0.06);
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+    font-size: 1rem;
+}
+
+.recuadro input::placeholder,
+.recuadro textarea::placeholder,
+.search-input::placeholder {
+    color: #7b8b98;
+}
+
+.recuadro input:focus,
+.recuadro textarea:focus,
+.search-input:focus {
+    outline: none;
+    box-shadow: 0 6px 24px rgba(25, 118, 210, 0.12);
+    border-color: var(--brand-blue);
+}
+
+/* Buttons — consistent CTA styles */
+.btn-cart,
+.btn-primary {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+}
+
+/* Product card subtle style (applies to product tiles inside typical grid) */
+.max-w-7xl .grid > div {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.01)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition:
+        transform 0.14s,
+        box-shadow 0.14s;
+}
+.max-w-7xl .grid > div:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(2, 6, 23, 0.6);
 }
 
 .pills-row {
@@ -470,3 +563,163 @@ header .brand {
 }
 
 /* keep older utility styles in case other pages rely on them */
+
+/* --------------------
+   Enhancements for main page (header, search, pills, hero, product cards)
+   -------------------- */
+.site-header {
+    background: linear-gradient(
+        90deg,
+        rgba(2, 6, 23, 0.95),
+        rgba(2, 6, 23, 0.88)
+    );
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.site-header .header-inner {
+    padding: 10px 18px;
+}
+.top-nav a {
+    color: rgba(255, 255, 255, 0.88);
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition:
+        background 0.14s,
+        color 0.14s,
+        transform 0.12s;
+}
+.top-nav a:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--accent-yellow);
+    transform: translateY(-2px);
+}
+
+/* Search input - centered, glass effect */
+.search-input {
+    max-width: 920px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border-radius: 999px;
+    padding: 14px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Pills (category filters) */
+.pills .pill {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 10px 16px;
+    font-weight: 700;
+    transition:
+        background 0.12s,
+        transform 0.12s,
+        color 0.12s;
+}
+.pills .pill.active,
+.pills .pill:hover {
+    background: linear-gradient(
+        90deg,
+        var(--brand-blue),
+        rgba(25, 118, 210, 0.85)
+    );
+    color: #fff;
+    transform: translateY(-4px);
+}
+
+/* Hero slides visual polish */
+.hero-slide {
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+.hero-slide::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0) 10%,
+        rgba(0, 0, 0, 0.35) 45%,
+        rgba(0, 0, 0, 0.65) 100%
+    );
+    pointer-events: none;
+}
+.hero-inner {
+    color: #fff;
+    z-index: 30;
+}
+.hero-inner h2 {
+    color: var(--accent-yellow);
+    text-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+.hero-inner p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Carousel buttons refinement */
+.carousel-btn {
+    background: rgba(2, 6, 23, 0.6);
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+}
+.carousel-btn:hover {
+    transform: translateY(-4px);
+}
+
+/* Product grid cards (on productos/public.blade) */
+.max-w-7xl .grid > div {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.98),
+        rgba(250, 250, 250, 0.96)
+    );
+    color: #071029;
+    border: 1px solid rgba(2, 6, 23, 0.06);
+    transition:
+        transform 0.14s,
+        box-shadow 0.14s;
+}
+.max-w-7xl .grid > div:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.12);
+}
+.max-w-7xl .grid img {
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+}
+
+/* Floating cart button (public) */
+#public-cart-toggle {
+    background: linear-gradient(90deg, var(--brand-blue), var(--brand-red));
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
+}
+#public-cart-toggle:hover {
+    transform: translateY(-3px);
+}
+
+/* Promo strip */
+.promo-strip {
+    background: linear-gradient(
+        90deg,
+        rgba(2, 6, 23, 0.9),
+        rgba(2, 6, 23, 0.8)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 640px) {
+    .search-input {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+    .pills .pill {
+        padding: 8px 12px;
+    }
+}

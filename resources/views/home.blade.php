@@ -7,7 +7,7 @@
     <link rel="icon" href="{{ asset('images/logo.png') }}?v=2" type="image/png">
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}?v=2" type="image/png">
     <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}?v=2">
-    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    @vite(['resources/css/app.css', 'resources/css/home.css', 'resources/js/app.js'])
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
         // Pequeño script para controlar el carrusel horizontal
@@ -75,49 +75,27 @@
         /* Espacio entre cada pill y estilos básicos */
         .pills .pill { margin-right: 0.5rem; padding: 0.35rem 0.6rem; display: inline-block; border-radius: 9999px; background: #f3f3f3; color: #111; }
         .pills .pill.active { background: #111; color: #fff; }
-        /* Carril de slides: responsive spacing y tamaños para mostrar hasta 4 items en pantallas grandes */
-        .hero-carousel { margin-top: 1rem; }
+        /* Carril de slides: responsive spacing y tamaños fijos para evitar que se colapsen */
+        .hero-carousel { margin-top: 1rem; position: relative; }
 
         .hero-carousel .slides {
             display:flex;
-            gap:1rem;
+            gap:24px;
             overflow-x:auto;
             scroll-snap-type:x mandatory;
             -webkit-overflow-scrolling:touch;
-            padding: 0 0.75rem;
+            padding: 24px;
+            scroll-behavior: smooth;
+        }
+
+        .hero-carousel .hero-slide {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
         }
 
         /* Mobile (1 por pantalla) */
         @media (max-width: 639px) {
-            .hero-carousel { margin-top: 0.6rem; }
-            .hero-carousel .slides { padding: 0 0.5rem; }
-            .hero-carousel .hero-slide { flex: 0 0 calc(100% - 1rem); }
-            .hero-slide .hero-inner { padding: 0.6rem !important; }
-        }
-
-        /* Small tablet (2 por pantalla) */
-        @media (min-width: 640px) and (max-width: 899px) {
-            .hero-carousel { margin-top: 1rem; }
-            .hero-carousel .slides { padding: 0 0.75rem; }
-            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 1rem) / 2); }
-            .hero-slide .hero-inner { padding: 0.85rem !important; }
-        }
-
-        /* Medium (3 por pantalla) */
-        @media (min-width: 900px) and (max-width: 1199px) {
-            .hero-carousel { margin-top: 1.25rem; }
-            .hero-carousel .slides { padding: 0 1rem; }
-            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 2rem) / 3); }
-            .hero-slide .hero-inner { padding: 1rem !important; }
-        }
-
-        /* Desktop large (4 por pantalla) */
-        @media (min-width: 1200px) {
-            .hero-carousel { margin-top: 2rem; }
-            .hero-carousel .slides { padding: 0 2rem; }
-            /* restamos 3 gaps (1rem each -> 3rem) o 2rem padding depending, approximate with 2rem */
-            .hero-carousel .hero-slide { flex: 0 0 calc((100% - 3rem) / 4); }
-            .hero-slide .hero-inner { padding: 1.25rem !important; }
+            .hero-carousel .hero-slide { flex: 0 0 85%; }
         }
     </style>
     
@@ -125,41 +103,62 @@
 <body>
     {{-- filepath: resources/views/home.blade.php --}}
     <x-app-layout>
-        <header class="site-header">
-            <div class="container full header-inner">
-                <div class="brand">
-                    <a href="{{ url('/') }}">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo" onerror="this.style.filter='grayscale(1)';"/>
-                    </a>
-                </div>
-                <nav class="top-nav">
-                    <a href="#">Inicio</a>
-                    <a href="{{ route('productos.public') }}">Tienda</a>
-                    <a href="#">Nosotros</a>
-                    <a href="#">Contacto</a>
+        <x-slot name="hideNav">true</x-slot>
+        
+        <header style="background: #0a0a0a; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 0 16px 0; position: sticky; top: 0; z-index: 100;">
+            {{-- Top Navbar --}}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; max-width: 1400px; margin: 0 auto;">
+                
+                {{-- Logo --}}
+                <a href="{{ url('/') }}" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 48px; filter: drop-shadow(0 4px 12px rgba(198,40,40,0.3));">
+                    <span style="color: #fff; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.4rem; letter-spacing: 0.05em;">Barbershop</span>
+                </a>
+
+                {{-- Main Links --}}
+                <nav style="display: flex; gap: 28px; align-items: center;">
+                    <a href="#" style="color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='#1976D2'" onmouseout="this.style.color='#fff'">Inicio</a>
+                    <a href="{{ route('productos.public') }}" style="color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='#1976D2'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Tienda</a>
+                    <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='#1976D2'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Nosotros</a>
+                    <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='#1976D2'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Contacto</a>
                 </nav>
-                <div class="header-actions" style="position:relative">
+
+                {{-- Actions --}}
+                <div style="display: flex; gap: 16px; align-items: center;">
                     @auth
-                        <a href="{{ route('profile.edit') }}" class="btn-circle" title="Mi perfil">👤</a>
+                        <a href="{{ route('profile.edit') }}" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(255,255,255,0.1); color: #fff; border-radius: 50%; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            <i class="fas fa-user"></i>
+                        </a>
                     @else
-                        <a href="{{ url('/login') }}" class="btn-circle" title="Iniciar sesión">Iniciar sesión</a>
+                        <a href="{{ url('/login') }}" style="display: flex; align-items: center; gap: 8px; background: #1565C0; color: #fff; padding: 10px 20px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; box-shadow: 0 4px 16px rgba(21,101,192,0.3);" onmouseover="this.style.background='#1976D2'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#1565C0'; this.style.transform='translateY(0)'">
+                            <i class="fas fa-right-to-bracket"></i> Iniciar sesión
+                        </a>
                     @endauth
                 </div>
             </div>
-            <div class="container full search-row">
-                <input type="text" placeholder="¿Qué estás buscando hoy?" class="search-input" />
-            </div>
-            <div class="container full pills-row">
-                <div class="pills">
-                    <a class="pill active" data-category="all">Todos</a>
+
+            {{-- Search & Pills Row --}}
+            <div style="max-width: 1400px; margin: 0 auto; padding: 0 32px; display: flex; flex-direction: column; gap: 16px;">
+                
+                {{-- Search --}}
+                <div style="position: relative; max-width: 600px; width: 100%; margin: 0 auto;">
+                    <i class="fas fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"></i>
+                    <input type="text" placeholder="¿Qué estás buscando hoy?" style="width: 100%; padding: 12px 16px 12px 44px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none; transition: all 0.2s;" onfocus="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'" onblur="this.style.background='rgba(255,255,255,0.06)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+                </div>
+
+                {{-- Category Pills --}}
+                <div class="pills" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px;">
+                    <a href="#" class="pill active" data-category="all" style="padding: 8px 18px; background: #C62828; color: #fff; border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 700; transition: background 0.2s; box-shadow: 0 4px 12px rgba(198,40,40,0.3);">Todos</a>
                     @if(isset($categorias) && $categorias->isNotEmpty())
                         @foreach($categorias as $cat)
-                            <a class="pill" data-category="{{ $cat }}">{{ $cat }}</a>
+                            <a href="#" class="pill" data-category="{{ $cat }}" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">{{ $cat }}</a>
                         @endforeach
                     @else
-                        <a class="pill" data-category="Capas">Capas</a>
-                        <a class="pill" data-category="Ceras">Ceras</a>
-                        <a class="pill" data-category="Máquinas">Máquinas</a>
+                        <a href="#" class="pill" data-category="Ceras" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">Ceras</a>
+                        <a href="#" class="pill" data-category="Trimmer" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">Trimmer</a>
+                        <a href="#" class="pill" data-category="Tijeras" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">Tijeras</a>
+                        <a href="#" class="pill" data-category="Envace" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">Envace</a>
+                        <a href="#" class="pill" data-category="Maquinas" style="padding: 8px 18px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); border-radius: 999px; text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'" onmouseout="if(!this.classList.contains('active')) { this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; }">Maquinas</a>
                     @endif
                 </div>
             </div>
@@ -182,29 +181,40 @@
                                     }
                                 }
                             @endphp
-                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" data-stock="{{ $stock ?? 0 }}" style="position:relative; background-image: linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url('{{ ($producto->imagen && $hasImage) ? asset('storage/' . $producto->imagen) : asset('images/slide-1.jpg') }}'); background-size: cover; background-position: center;">
-                                <div class="hero-inner p-6 text-white">
-                                    <div class="max-w-3xl">
-                                        @if(!empty($producto->imagen) && !$hasImage)
-                                            <div class="slide-badge" style="position:absolute; left:12px; top:12px; background:rgba(220,38,38,0.9); color:#fff; padding:6px 10px; border-radius:6px; font-weight:700; z-index:60;">Imagen no encontrada</div>
-                                        @endif
-                                        <h2 class="text-3xl font-bold mb-2">{{ $producto->nombre }}</h2>
-                                        <p class="mb-4 text-lg">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 150) }}</p>
-                                        <div class="flex items-center gap-4">
-                                            <span class="text-2xl font-extrabold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
-                                            @if($stock === null)
-                                                {{-- sin info de stock, solo mostrar enlace de detalle (no añadir al carrito) --}}
+                            <article class="hero-slide" data-category="{{ $producto->categoria ?? 'Sin categoría' }}" data-stock="{{ $stock ?? 0 }}" style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.07); display:flex; flex-direction:column; transition:transform .2s, box-shadow .2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.07)'">
+                                
+                                {{-- Image --}}
+                                <div style="height:200px; background:linear-gradient(135deg,#111827,#1a2332); display:flex; align-items:center; justify-content:center; position:relative;">
+                                    @if($hasImage)
+                                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" style="width:100%; height:100%; object-fit:cover;">
+                                    @else
+                                        <i class="fas fa-box" style="font-size:3.5rem; color:rgba(255,255,255,0.2);"></i>
+                                    @endif
+                                    
+                                    {{-- Stock Badge --}}
+                                    <div style="position:absolute; top:12px; right:12px;">
+                                        @if($stock !== null)
+                                            @if($stock <= 0)
+                                                <span style="background:#C62828; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">Agotado</span>
+                                            @elseif($stock <= 5)
+                                                <span style="background:#F57F17; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">¡Solo {{ $stock }}!</span>
                                             @else
-                                                @if($stock <= 0)
-                                                    <span class="text-red-300 font-semibold">Agotado</span>
-                                                @else
-                                                    <small class="ml-2">Disponibles: <strong>{{ $stock }}</strong></small>
-                                                @endif
+                                                <span style="background:#2E7D32; color:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700;">Disponible</span>
                                             @endif
-                                            {{-- Detalle eliminado en la página principal por petición: no mostrar la lupa aquí --}}
-                                        </div>
+                                        @endif
                                     </div>
                                 </div>
+
+                                {{-- Info --}}
+                                <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:8px;">
+                                    <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#111827;">{{ $producto->nombre }}</h3>
+                                    <p style="margin:0; font-size:0.88rem; color:#6B7280; line-height:1.5;">{{ \Illuminate\Support\Str::limit($producto->descripcion ?? '', 90) }}</p>
+                                    @if($producto->categoria ?? false)
+                                        <span style="background:rgba(21,101,192,0.1); color:#1565C0; padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; display:inline-block; width:fit-content; margin-top:4px;">{{ $producto->categoria }}</span>
+                                    @endif
+                                    <div style="font-size:1.4rem; font-weight:800; color:#1565C0; margin-top:auto; padding-top:12px;">${{ number_format($producto->precio, 0, ',', '.') }}</div>
+                                </div>
+
                             </article>
                         @endforeach
                     @else
