@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\AdminProductoController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminUserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -57,9 +58,13 @@ Route::middleware(['auth'])->group(function () {
         // Panel admin: nuevas rutas funcionales
         Route::get('/stock-report', [AdminController::class, 'stockReport'])->name('stock.report');
         Route::get('/orders', [AdminController::class, 'orders'])->name('orders.index');
+        Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->name('orders.status.update');
         Route::get('/shipments', [AdminController::class, 'shipments'])->name('shipments.index');
         Route::get('/returns', [AdminController::class, 'returns'])->name('returns.index');
-        Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+        
+        // Rutas de administración de usuarios
+        Route::resource('users', AdminUserController::class)->except(['create', 'show', 'edit']);
+
         Route::resource('productos', AdminProductoController::class);
     });
 

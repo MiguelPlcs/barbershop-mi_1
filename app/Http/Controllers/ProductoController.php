@@ -30,7 +30,9 @@ class ProductoController extends Controller
         }
 
         $productos = Producto::paginate(9); // O la cantidad que prefieras por página
-        return view('productos.user', compact('productos'));
+        $orders = Order::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
+        
+        return view('productos.user', compact('productos', 'orders'));
     }
 
     // Comprar producto (solo user)
@@ -290,6 +292,7 @@ class ProductoController extends Controller
             'total' => $total,
             'payer_name' => $payerName,
             'payment_method' => $paymentMethod,
+            'status' => 'Pendiente',
         ]);
 
         // Descontar stock

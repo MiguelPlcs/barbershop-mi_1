@@ -31,7 +31,35 @@ class AdminController extends Controller
      */
     public function orders()
     {
-        return view('admin.orders');
+        $orders = \App\Models\Order::with('user')->orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.orders', compact('orders'));
+    }
+
+    /**
+     * Actualizar estado del pedido
+     */
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:Pendiente,Confirmado,Enviado,Punto de entrega fisico,Cancelado'
+        ]);
+
+        $order = \App\Models\Order::findOrFail($id);
+
+        if ($order->status !== 'Cancelado' && $request->status === 'Cancelado') {
+            foreach ($order->items as $item) {
+                $producto = \App\Models\Producto::find($item['producto_id']);
+                if ($producto && isset($producto->stock)) {
+                    $producto->stock += $item['qty'];
+                    $producto->save();
+                }
+            }
+        }
+
+        $order->status = $request->status;
+        $order->save();
+
+        return redirect()->back()->with('success', 'Estado del pedido actualizado correctamente.');
     }
 
     /**
@@ -39,7 +67,8 @@ class AdminController extends Controller
      */
     public function shipments()
     {
-        return view('admin.shipments');
+        $orders = \App\Models\Order::with('user')->orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.shipments', compact('orders'));
     }
 
     /**
@@ -47,7 +76,8 @@ class AdminController extends Controller
      */
     public function returns()
     {
-        return view('admin.returns');
+        $orders = \App\Models\Order::with('user')->where('status', 'Cancelado')->orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.returns', compact('orders'));
     }
 
     /**

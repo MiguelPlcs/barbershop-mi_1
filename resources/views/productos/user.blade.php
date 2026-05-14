@@ -62,6 +62,69 @@
             <div style="margin-top:32px; display:flex; justify-content:center;">
                 {{ $productos->links() }}
             </div>
+
+            {{-- Sección Mis Pedidos --}}
+            <div style="margin-top:48px; background:#fff; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.07); overflow:hidden;">
+                <div style="background:#111827; padding:16px 24px; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="color:#fff; font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-box-open" style="color:#1976D2;"></i> Mis Pedidos
+                    </span>
+                    <span style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); padding:4px 12px; border-radius:999px; font-size:0.82rem;">
+                        {{ $orders->count() }} pedidos
+                    </span>
+                </div>
+                
+                @if($orders->count() > 0)
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.93rem;">
+                        <thead>
+                            <tr style="background:#F4F6F9; border-bottom:2px solid #E8ECF0;">
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">N° Orden</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Fecha</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Método Pago</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Total</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Estado</th>
+                                <th style="padding:13px 20px; text-align:right; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($orders as $o)
+                            <tr style="border-bottom:1px solid #F4F6F9; transition:background .15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='transparent'">
+                                <td style="padding:14px 20px; font-weight:700; color:#111827;">{{ $o->order_number }}</td>
+                                <td style="padding:14px 20px; color:#6B7280;">{{ $o->created_at->format('d/m/Y H:i') }}</td>
+                                <td style="padding:14px 20px; color:#6B7280; text-transform:capitalize;">{{ $o->payment_method ?? 'N/A' }}</td>
+                                <td style="padding:14px 20px; font-weight:800; color:#1565C0;">${{ number_format($o->total, 0, ',', '.') }}</td>
+                                <td style="padding:14px 20px;">
+                                    @php
+                                        $status = strtolower($o->status ?? 'pendiente');
+                                        $bg = 'rgba(21,101,192,0.1)'; $col = '#1565C0'; // Pendiente/Por defecto
+                                        if($status == 'confirmado') { $bg = 'rgba(245,127,23,0.1)'; $col = '#F57F17'; }
+                                        if($status == 'enviado') { $bg = 'rgba(2,136,209,0.1)'; $col = '#0288D1'; }
+                                        if($status == 'punto de entrega fisico') { $bg = 'rgba(46,125,50,0.1)'; $col = '#2E7D32'; }
+                                        if($status == 'cancelado') { $bg = 'rgba(198,40,40,0.1)'; $col = '#C62828'; }
+                                    @endphp
+                                    <span style="background:{{ $bg }}; color:{{ $col }}; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">
+                                        {{ $o->status ?? 'Pendiente' }}
+                                    </span>
+                                </td>
+                                <td style="padding:14px 20px; text-align:right;">
+                                    <a href="{{ route('cart.confirmation', $o->id) }}" style="background:rgba(21,101,192,0.1); color:#1565C0; border:none; padding:6px 12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:0.8rem; transition:all .2s;" onmouseover="this.style.background='#1565C0'; this.style.color='#fff'" onmouseout="this.style.background='rgba(21,101,192,0.1)'; this.style.color='#1565C0'">
+                                        <i class="fas fa-file-invoice"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div style="text-align:center; padding:48px 24px; color:#9AA7B6;">
+                    <i class="fas fa-box" style="font-size:2.5rem; display:block; margin-bottom:14px;"></i>
+                    <p style="margin:0;">Aún no has realizado ningún pedido.</p>
+                </div>
+                @endif
+            </div>
+
         </div>
     </div>
 </x-app-layout>

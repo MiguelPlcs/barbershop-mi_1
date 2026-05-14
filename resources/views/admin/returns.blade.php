@@ -13,23 +13,74 @@
         </div>
         <div style="padding:28px 32px;">
             <div style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.07);">
-                <div style="background:#111827; padding:16px 24px;">
+                <div style="background:#111827; padding:16px 24px; display:flex; align-items:center; justify-content:space-between;">
                     <span style="color:#fff; font-weight:700; font-size:1rem; display:flex; align-items:center; gap:10px;">
-                        <i class="fas fa-rotate-left" style="color:#1976D2;"></i> Solicitudes de devolución
+                        <i class="fas fa-rotate-left" style="color:#1976D2;"></i> Solicitudes de devolución / Cancelaciones
                     </span>
+                    @isset($orders)
+                    <span style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); padding:4px 12px; border-radius:999px; font-size:0.82rem;">
+                        {{ $orders->total() }} pedidos
+                    </span>
+                    @endisset
                 </div>
+
+                @if(isset($orders) && $orders->count() > 0)
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.93rem;">
+                        <thead>
+                            <tr style="background:#F4F6F9; border-bottom:2px solid #E8ECF0;">
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">N° Orden</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Cliente</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Fecha</th>
+                                <th style="padding:13px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Estado Actual</th>
+                                <th style="padding:13px 20px; text-align:center; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Cancelar Pedido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($orders as $o)
+                            <tr style="border-bottom:1px solid #F4F6F9; transition:background .15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='transparent'">
+                                <td style="padding:14px 20px; font-weight:700; color:#111827;">{{ $o->order_number }}</td>
+                                <td style="padding:14px 20px; color:#6B7280;">
+                                    {{ $o->payer_name ?? ($o->user ? $o->user->name : 'N/A') }}
+                                </td>
+                                <td style="padding:14px 20px; color:#6B7280;">{{ $o->created_at->format('d/m/Y H:i') }}</td>
+                                <td style="padding:14px 20px;">
+                                    @php
+                                        $status = strtolower($o->status ?? 'pendiente');
+                                        $bg = 'rgba(21,101,192,0.1)'; $col = '#1565C0';
+                                        if($status == 'confirmado') { $bg = 'rgba(245,127,23,0.1)'; $col = '#F57F17'; }
+                                        if($status == 'enviado') { $bg = 'rgba(2,136,209,0.1)'; $col = '#0288D1'; }
+                                        if($status == 'punto de entrega fisico') { $bg = 'rgba(46,125,50,0.1)'; $col = '#2E7D32'; }
+                                        if($status == 'cancelado') { $bg = 'rgba(198,40,40,0.1)'; $col = '#C62828'; }
+                                    @endphp
+                                    <span style="background:{{ $bg }}; color:{{ $col }}; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">
+                                        {{ $o->status ?? 'Pendiente' }}
+                                    </span>
+                                </td>
+                                <td style="padding:14px 20px; text-align:center;">
+                                    <span style="font-size:0.8rem; color:#C62828; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                        <i class="fas fa-ban"></i> Pedido Cancelado
+                                    </span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:16px 24px; border-top:1px solid #F4F6F9;">
+                    {{ $orders->links() }}
+                </div>
+                @else
                 <div style="text-align:center; padding:72px 32px;">
                     <div style="width:80px; height:80px; background:rgba(245,127,23,0.08); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
                         <i class="fas fa-rotate-left" style="font-size:2.2rem; color:#F57F17;"></i>
                     </div>
-                    <h2 style="margin:0 0 10px; color:#111827; font-size:1.3rem; font-weight:700;">Módulo de devoluciones</h2>
+                    <h2 style="margin:0 0 10px; color:#111827; font-size:1.3rem; font-weight:700;">No hay solicitudes</h2>
                     <p style="color:#6B7280; margin:0 0 28px; max-width:400px; margin-left:auto; margin-right:auto; line-height:1.6;">
-                        Aquí podrás revisar y gestionar las solicitudes de devolución de productos.
+                        Aún no se han realizado pedidos en la tienda.
                     </p>
-                    <span style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:rgba(21,101,192,0.08); color:#1565C0; border-radius:999px; font-size:0.88rem; font-weight:600;">
-                        <i class="fas fa-clock"></i> Próximamente disponible
-                    </span>
                 </div>
+                @endif
             </div>
         </div>
     </div>
