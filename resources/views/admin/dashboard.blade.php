@@ -76,6 +76,26 @@
                     <div style="position:absolute; right:-12px; bottom:-12px; width:70px; height:70px; border-radius:50%; background:rgba(21,101,192,0.06);"></div>
                 </div>
 
+                {{-- Ganancias --}}
+                <div style="background:#fff; border-radius:16px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.07); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; cursor:default;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.07)'">
+                    <div style="width:52px; height:52px; background:rgba(46,125,50,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                        <i class="fas fa-dollar-sign" style="font-size:1.4rem; color:#2E7D32;"></i>
+                    </div>
+                    <div style="font-size:2.2rem; font-weight:800; color:#111827;">${{ number_format($totalGanancias ?? 0, 0, ',', '.') }}</div>
+                    <div style="font-size:0.88rem; color:#6B7280; font-weight:500; margin-top:2px;">Ganancias totales</div>
+                    <div style="position:absolute; right:-12px; bottom:-12px; width:70px; height:70px; border-radius:50%; background:rgba(46,125,50,0.06);"></div>
+                </div>
+
+                {{-- Productos Vendidos --}}
+                <a href="#sold-products-detail" style="display:block; text-decoration:none; background:#fff; border-radius:16px; padding:24px; box-shadow:0 4px 20px rgba(0,0,0,0.07); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s; cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.07)'">
+                    <div style="width:52px; height:52px; background:rgba(245,127,23,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                        <i class="fas fa-shopping-bag" style="font-size:1.4rem; color:#F57F17;"></i>
+                    </div>
+                    <div style="font-size:2.2rem; font-weight:800; color:#111827;">{{ $productosVendidos ?? 0 }}</div>
+                    <div style="font-size:0.88rem; color:#6B7280; font-weight:500; margin-top:2px;">Productos vendidos</div>
+                    <div style="position:absolute; right:-12px; bottom:-12px; width:70px; height:70px; border-radius:50%; background:rgba(245,127,23,0.06);"></div>
+                </a>
+
                 {{-- Acceso rápido cards --}}
                 <a href="{{ route('admin.orders.index') }}" style="background:linear-gradient(135deg,#1565C0,#1976D2); border-radius:16px; padding:24px; box-shadow:0 4px 20px rgba(21,101,192,0.3); color:#fff; text-decoration:none; display:block; transition:transform .2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
                     <i class="fas fa-receipt" style="font-size:1.8rem; margin-bottom:14px; display:block; opacity:0.9;"></i>
@@ -146,6 +166,62 @@
                                     <td colspan="4" style="padding:48px; text-align:center; color:#9AA7B6;">
                                         <i class="fas fa-box-open" style="font-size:2rem; display:block; margin-bottom:12px;"></i>
                                         No hay productos registrados aún.
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Sold Products Detail --}}
+            <div id="sold-products-detail" style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-top:28px;">
+                <div style="background:#111827; color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between;">
+                    <h2 style="margin:0; font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-list" style="color:#F57F17;"></i> Detalle de Productos Vendidos
+                    </h2>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.93rem;">
+                        <thead>
+                            <tr style="background:#F4F6F9; border-bottom:2px solid #E8ECF0;">
+                                <th style="padding:12px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Pedido</th>
+                                <th style="padding:12px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Cliente</th>
+                                <th style="padding:12px 20px; text-align:left; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Producto</th>
+                                <th style="padding:12px 20px; text-align:center; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Cant.</th>
+                                <th style="padding:12px 20px; text-align:right; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Precio Ud.</th>
+                                <th style="padding:12px 20px; text-align:right; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280;">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(isset($soldItemsDetails) && $soldItemsDetails->isNotEmpty())
+                                @foreach($soldItemsDetails as $item)
+                                <tr style="border-bottom:1px solid #F4F6F9; transition:background .15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='transparent'">
+                                    <td style="padding:14px 20px;">
+                                        <div style="font-weight:700; color:#111827;">#{{ $item->order_number }}</div>
+                                    </td>
+                                    <td style="padding:14px 20px; color:#4B5563; font-weight:500;">
+                                        {{ $item->user_name }}
+                                    </td>
+                                    <td style="padding:14px 20px;">
+                                        <div style="font-weight:600; color:#1565C0;">{{ $item->product_name }}</div>
+                                    </td>
+                                    <td style="padding:14px 20px; text-align:center; font-weight:700; color:#111827;">
+                                        {{ $item->qty }}
+                                    </td>
+                                    <td style="padding:14px 20px; text-align:right; font-weight:600; color:#2E7D32;">
+                                        ${{ number_format($item->price, 0, ',', '.') }}
+                                    </td>
+                                    <td style="padding:14px 20px; text-align:right; color:#6B7280; font-size:0.85rem;">
+                                        {{ \Carbon\Carbon::parse($item->date)->format('d/m/Y H:i') }}
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="6" style="padding:48px; text-align:center; color:#9AA7B6;">
+                                        <i class="fas fa-receipt" style="font-size:2rem; display:block; margin-bottom:12px;"></i>
+                                        No hay productos vendidos registrados.
                                     </td>
                                 </tr>
                             @endif

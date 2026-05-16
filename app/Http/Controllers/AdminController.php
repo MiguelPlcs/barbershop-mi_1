@@ -15,7 +15,33 @@ class AdminController extends Controller
         $productosCount = Producto::count();
         $recentProductos = Producto::orderBy('_id', 'desc')->take(6)->get();
 
-        return view('admin.dashboard', compact('productosCount', 'recentProductos'));
+        $validOrders = \App\Models\Order::with('user')->where('status', '!=', 'Cancelado')->orderBy('created_at', 'desc')->get();
+        
+        $totalGanancias = $validOrders->sum('total');
+        $productosVendidos = 0;
+        $soldItemsDetails = collect();
+
+        foreach ($validOrders as $order) {
+            if (is_array($order->items)) {
+                foreach ($order->items as $item) {
+                    $productosVendidos += $item['qty'] ?? 1;
+                    $soldItemsDetails->push((object)[
+                        'order_number' => $order->order_number ?? substr($order->_id, -8),
+                        'order_id' => $order->_id,
+                        'user_name' => $order->payer_name ?? ($order->user->name ?? 'Invitado'),
+                        'product_name' => $item['nombre'] ?? 'Producto Desconocido',
+                        'qty' => $item['qty'] ?? 1,
+                        'price' => $item['precio'] ?? 0,
+                        'date' => $order->created_at,
+                    ]);
+                }
+            }
+        }
+
+        // Limitar a los 20 más recientes para la vista rápida
+        $soldItemsDetails = $soldItemsDetails->take(20);
+
+        return view('admin.dashboard', compact('productosCount', 'recentProductos', 'totalGanancias', 'productosVendidos', 'soldItemsDetails'));
     }
 
     /**
