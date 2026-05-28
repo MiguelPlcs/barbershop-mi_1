@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Events\Login;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         // Merge guest session cart into user's DB cart on login
         Event::listen(Login::class, function ($event) {
             $user = $event->user;
