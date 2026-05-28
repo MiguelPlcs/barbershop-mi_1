@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: barbershop
+    name: barbershop-mi-1
     env: docker
     dockerfilePath: ./Dockerfile
     plan: free
@@ -15,7 +15,7 @@ services:
       - key: APP_KEY
         sync: false   # Lo defines manualmente en el dashboard
       - key: APP_URL
-        sync: false   # Se completa con la URL de Render
+        value: https://barbershop-mi-1.onrender.com
       - key: DB_CONNECTION
         value: mongodb
       - key: MONGODB_URI
@@ -41,4 +41,4 @@ services:
       - key: MERCADOPAGO_CURRENCY
         value: COP
       - key: MERCADOPAGO_BACK_URL_BASE
-        sync: false   # Tu URL de Render: https://barbershop.onrender.com
+        sync: false   # Tu URL de Render: https://barbershop-mi-1.onrender.com
