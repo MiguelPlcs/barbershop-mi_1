@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
@@ -245,7 +246,7 @@ class ProductoController extends Controller
         return view('cart.confirmation', compact('order'));
     }
 
-    // Procesar pago simulado: crear orden, decrementar stock y vaciar carrito persistente
+    // Procesar pago (simulado o Mercado Pago): crear orden, decrementar stock y gestionar pasarela
     public function processPayment(Request $request)
     {
         if (!Auth::check()) {
@@ -281,10 +282,151 @@ class ProductoController extends Controller
             }
         }
 
-        // Crear orden (simulada) y almacenar datos de pago (simulación)
-        $orderNumber = strtoupper('ORD-' . substr(uniqid(), -8));
-        $payerName = $request->input('payer_name');
         $paymentMethod = $request->input('payment_method');
+        $payerName = $request->input('payer_name');
+
+        if ($paymentMethod === 'mercadopago') {
+            $accessToken = env('MERCADOPAGO_ACCESS_TOKEN');
+            if (empty($accessToken)) {
+                return redirect()->back()->withInput()->with('error', 'El método de pago Mercado Pago no está configurado. Por favor, configure el token de acceso MERCADOPAGO_ACCESS_TOKEN en el archivo .env.');
+            }
+
+            // Crear orden en estado 'Pendiente'
+            $orderNumber = strtoupper('ORD-' . substr(uniqid(), -8));
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'order_number' => $orderNumber,
+                'items' => $orderItems,
+                'total' => $total,
+                'payer_name' => $payerName,
+                'payment_method' => 'mercadopago',
+                'status' => 'Pendiente',
+            ]);
+
+            // Descontar stock (si el pago falla, el callback failure devolverá los productos)
+            foreach ($cartModel->items as $item) {
+                $producto = Producto::find($item->producto_id);
+                if ($producto) {
+                    $producto->stock -= $item->qty;
+                    $producto->save();
+                }
+            }
+
+            // Preparar items para Mercado Pago
+            $mpItems = [];
+            foreach ($orderItems as $item) {
+                $mpItems[] = [
+                    'title' => $item['nombre'],
+                    'quantity' => (int) $item['qty'],
+                    'unit_price' => (float) $item['precio'],
+                    'currency_id' => env('MERCADOPAGO_CURRENCY', 'COP'),
+                ];
+            }
+
+            // Petición HTTP a Mercado Pago para generar preferencia
+            try {
+                $successUrl = route('cart.payment.success');
+                $failureUrl = route('cart.payment.failure');
+                $pendingUrl = route('cart.payment.pending');
+
+                // Si está configurada una base de URL de retorno para Mercado Pago en .env, la usamos.
+                // Esto permite usar herramientas como ngrok para pruebas locales.
+                $mpBackUrlBase = env('MERCADOPAGO_BACK_URL_BASE');
+                if (!empty($mpBackUrlBase)) {
+                    $successUrl = str_replace(url('/'), rtrim($mpBackUrlBase, '/'), $successUrl);
+                    $failureUrl = str_replace(url('/'), rtrim($mpBackUrlBase, '/'), $failureUrl);
+                    $pendingUrl = str_replace(url('/'), rtrim($mpBackUrlBase, '/'), $pendingUrl);
+                } else {
+                    // Fallback automático para evitar el error de validación de Mercado Pago en localhost / http.
+                    // Mercado Pago requiere HTTPS y no permite localhost o IPs privadas.
+                    $hasLocalHost = str_contains($successUrl, 'localhost') || str_contains($successUrl, '127.0.0.1');
+                    $isHttp = str_starts_with($successUrl, 'http://');
+
+                    if ($hasLocalHost || $isHttp) {
+                        // Reemplazar el host local por un dominio público ficticio con HTTPS
+                        $successUrl = str_replace(['http://localhost', 'https://localhost', 'http://127.0.0.1', 'https://127.0.0.1'], 'https://barbershop.example.com', $successUrl);
+                        $failureUrl = str_replace(['http://localhost', 'https://localhost', 'http://127.0.0.1', 'https://127.0.0.1'], 'https://barbershop.example.com', $failureUrl);
+                        $pendingUrl = str_replace(['http://localhost', 'https://localhost', 'http://127.0.0.1', 'https://127.0.0.1'], 'https://barbershop.example.com', $pendingUrl);
+                        
+                        // Si por alguna razón todavía es http, forzar a https
+                        if (str_starts_with($successUrl, 'http://')) {
+                            $successUrl = 'https://' . substr($successUrl, 7);
+                            $failureUrl = 'https://' . substr($failureUrl, 7);
+                            $pendingUrl = 'https://' . substr($pendingUrl, 7);
+                        }
+                    }
+                }
+
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ])->timeout(10)->post('https://api.mercadopago.com/checkout/preferences', [
+                    'items' => $mpItems,
+                    'payer' => [
+                        'name' => Auth::user()->name,
+                        'email' => Auth::user()->email,
+                    ],
+                    'back_urls' => [
+                        'success' => $successUrl,
+                        'failure' => $failureUrl,
+                        'pending' => $pendingUrl,
+                    ],
+                    'auto_return' => 'approved',
+                    'external_reference' => (string) $order->id,
+                ]);
+
+                if ($response->failed()) {
+                    // Restaurar stock
+                    foreach ($orderItems as $item) {
+                        $producto = Producto::find($item['producto_id']);
+                        if ($producto) {
+                            $producto->stock += $item['qty'];
+                            $producto->save();
+                        }
+                    }
+                    $order->delete();
+                    
+                    $errorData = $response->json();
+                    $msg = $errorData['message'] ?? 'Error desconocido al conectar con Mercado Pago.';
+                    return redirect()->back()->withInput()->with('error', 'Error al conectar con Mercado Pago: ' . $msg);
+                }
+
+                $responseData = $response->json();
+                
+                // Guardar id de preferencia
+                $order->mercadopago_preference_id = $responseData['id'] ?? null;
+                $order->save();
+
+                // Eliminar items y el carrito temporal en la base de datos
+                $cartModel->items()->delete();
+                $cartModel->delete();
+
+                // Obtener init_point y redirigir
+                $initPoint = $responseData['init_point'] ?? $responseData['sandbox_init_point'] ?? null;
+                if ($initPoint) {
+                    return redirect()->away($initPoint);
+                } else {
+                    throw new \Exception('No se recibió la URL de inicio (init_point) de Mercado Pago.');
+                }
+
+            } catch (\Exception $e) {
+                // Restaurar stock en caso de excepción
+                foreach ($orderItems as $item) {
+                    $producto = Producto::find($item['producto_id']);
+                    if ($producto) {
+                        $producto->stock += $item['qty'];
+                        $producto->save();
+                    }
+                }
+                if (isset($order)) {
+                    $order->delete();
+                }
+                return redirect()->back()->withInput()->with('error', 'No se pudo iniciar el pago con Mercado Pago: ' . $e->getMessage());
+            }
+        }
+
+        // Crear orden simulada
+        $orderNumber = strtoupper('ORD-' . substr(uniqid(), -8));
         $order = Order::create([
             'user_id' => Auth::id(),
             'order_number' => $orderNumber,
@@ -298,8 +440,10 @@ class ProductoController extends Controller
         // Descontar stock
         foreach ($cartModel->items as $item) {
             $producto = Producto::find($item->producto_id);
-            $producto->stock -= $item->qty;
-            $producto->save();
+            if ($producto) {
+                $producto->stock -= $item->qty;
+                $producto->save();
+            }
         }
 
         // Eliminar items y carrito
@@ -307,6 +451,82 @@ class ProductoController extends Controller
         $cartModel->delete();
 
         return redirect()->route('cart.confirmation', ['order' => $order->id])->with('success', 'Compra realizada con éxito.');
+    }
+
+    // Callback exitoso de Mercado Pago
+    public function paymentSuccess(Request $request)
+    {
+        $orderId = $request->input('external_reference');
+        $paymentId = $request->input('payment_id');
+        $status = $request->input('status');
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return redirect()->route('productos.public')->with('error', 'Orden no encontrada.');
+        }
+
+        // Actualizar estado de la orden a 'Confirmado'
+        $order->status = 'Confirmado';
+        $order->mercadopago_payment_id = $paymentId;
+        $order->mercadopago_payment_status = $status;
+        $order->save();
+
+        return redirect()->route('cart.confirmation', ['order' => $order->id])->with('success', '¡Pago acreditado con éxito en Mercado Pago!');
+    }
+
+    // Callback de error de Mercado Pago
+    public function paymentFailure(Request $request)
+    {
+        $orderId = $request->input('external_reference');
+        $order = Order::find($orderId);
+
+        if ($order) {
+            // Re-crear el carrito de compras para que el usuario no pierda su selección
+            $cartModel = Cart::firstOrCreate(['user_id' => Auth::id()]);
+            foreach ($order->items as $item) {
+                CartItem::create([
+                    'cart_id' => $cartModel->id,
+                    'producto_id' => $item['producto_id'],
+                    'nombre' => $item['nombre'],
+                    'precio' => $item['precio'],
+                    'qty' => $item['qty'],
+                ]);
+            }
+
+            // Devolver el stock restado
+            foreach ($order->items as $item) {
+                $producto = Producto::find($item['producto_id']);
+                if ($producto) {
+                    $producto->stock += $item['qty'];
+                    $producto->save();
+                }
+            }
+
+            // Eliminar orden fallida
+            $order->delete();
+        }
+
+        return redirect()->route('cart.index')->with('error', 'El pago fue cancelado o rechazado por Mercado Pago. Tus productos han sido restaurados al carrito.');
+    }
+
+    // Callback de pago pendiente de Mercado Pago
+    public function paymentPending(Request $request)
+    {
+        $orderId = $request->input('external_reference');
+        $paymentId = $request->input('payment_id');
+        $status = $request->input('status');
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return redirect()->route('productos.public')->with('error', 'Orden no encontrada.');
+        }
+
+        $order->status = 'Pendiente';
+        $order->mercadopago_payment_id = $paymentId;
+        $order->mercadopago_payment_status = $status;
+        $order->save();
+
+        return redirect()->route('cart.confirmation', ['order' => $order->id])->with('warning', 'Tu pago está en proceso de verificación.');
     }
 
     // Generar vista de factura para invitado (sin registro)

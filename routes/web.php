@@ -49,6 +49,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cart/payment', [ProductoController::class, 'paymentForm'])->name('cart.payment');
     Route::post('/cart/payment', [ProductoController::class, 'processPayment'])->name('cart.process_payment');
 
+    // Rutas de retorno de Mercado Pago
+    Route::get('/cart/payment/success', [ProductoController::class, 'paymentSuccess'])->name('cart.payment.success');
+    Route::get('/cart/payment/failure', [ProductoController::class, 'paymentFailure'])->name('cart.payment.failure');
+    Route::get('/cart/payment/pending', [ProductoController::class, 'paymentPending'])->name('cart.payment.pending');
+
     // Página de confirmación de la orden
     Route::get('/cart/confirmation/{order}', [ProductoController::class, 'confirmation'])->name('cart.confirmation');
 

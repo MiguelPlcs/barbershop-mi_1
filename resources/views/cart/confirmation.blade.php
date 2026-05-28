@@ -26,15 +26,41 @@
 
     <div style="max-width:720px; margin:0 auto; padding:28px 24px;">
 
-        {{-- Success Banner --}}
-        <div style="background:linear-gradient(135deg,#1565C0,#0D47A1); border-radius:16px; padding:32px; text-align:center; margin-bottom:24px; box-shadow:0 8px 32px rgba(21,101,192,0.3); position:relative; overflow:hidden;">
+        @if(session('success'))
+            <div style="background:rgba(46,125,50,0.08); border:1px solid rgba(46,125,50,0.25); border-radius:12px; padding:14px 18px; margin-bottom:22px; color:#2E7D32; font-size:0.95rem; display:flex; align-items:center; gap:10px; font-weight: 600;">
+                <i class="fas fa-circle-check"></i> {{ session('success') }}
+            </div>
+        @endif
+        @if(session('warning'))
+            <div style="background:rgba(245,127,23,0.08); border:1px solid rgba(245,127,23,0.25); border-radius:12px; padding:14px 18px; margin-bottom:22px; color:#F57F17; font-size:0.95rem; display:flex; align-items:center; gap:10px; font-weight: 600;">
+                <i class="fas fa-triangle-exclamation"></i> {{ session('warning') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div style="background:rgba(198,40,40,0.08); border:1px solid rgba(198,40,40,0.25); border-radius:12px; padding:14px 18px; margin-bottom:22px; color:#C62828; font-size:0.95rem; display:flex; align-items:center; gap:10px; font-weight: 600;">
+                <i class="fas fa-circle-exclamation"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        @php
+            $isPending = isset($order->mercadopago_payment_status) && in_array($order->mercadopago_payment_status, ['pending', 'in_process']);
+            $bannerBg = $isPending ? 'linear-gradient(135deg,#EF6C00,#E65100)' : 'linear-gradient(135deg,#1565C0,#0D47A1)';
+            $bannerIcon = $isPending ? 'fa-hourglass-half' : 'fa-circle-check';
+            $bannerTitle = $isPending ? '¡Pago en proceso!' : '¡Pago recibido con éxito!';
+            $bannerDesc = $isPending 
+                ? 'Tu pago está siendo verificado por Mercado Pago. Una vez aprobado, confirmaremos tu pedido.' 
+                : 'Tu pago ha sido procesado, el pedido está a la espera de confirmación.';
+        @endphp
+
+        {{-- Success/Pending Banner --}}
+        <div style="background:{{ $bannerBg }}; border-radius:16px; padding:32px; text-align:center; margin-bottom:24px; box-shadow:0 8px 32px rgba(21,101,192,0.15); position:relative; overflow:hidden;">
             <div style="position:absolute; top:-20px; right:-20px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.05);"></div>
             <div style="position:absolute; bottom:-30px; left:-30px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.04);"></div>
             <div style="width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; position:relative; z-index:1;">
-                <i class="fas fa-circle-check" style="font-size:2.2rem; color:#fff;"></i>
+                <i class="fas {{ $bannerIcon }}" style="font-size:2.2rem; color:#fff;"></i>
             </div>
-            <h2 style="margin:0 0 8px; color:#fff; font-size:1.5rem; font-weight:800; position:relative; z-index:1;">¡Pago recibido con éxito!</h2>
-            <p style="margin:0 0 16px; color:rgba(255,255,255,0.8); font-size:0.95rem; position:relative; z-index:1;">Tu pago ha sido procesado, el pedido está a la espera de confirmación.</p>
+            <h2 style="margin:0 0 8px; color:#fff; font-size:1.5rem; font-weight:800; position:relative; z-index:1;">{{ $bannerTitle }}</h2>
+            <p style="margin:0 0 16px; color:rgba(255,255,255,0.8); font-size:0.95rem; position:relative; z-index:1;">{{ $bannerDesc }}</p>
             <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); border-radius:999px; padding:8px 20px; position:relative; z-index:1;">
                 <i class="fas fa-hashtag" style="font-size:0.85rem; color:rgba(255,255,255,0.8);"></i>
                 <span style="color:#fff; font-weight:700; font-size:0.95rem;">Orden: {{ $order->order_number }}</span>

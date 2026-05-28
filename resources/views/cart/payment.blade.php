@@ -65,17 +65,55 @@
                                     onblur="this.style.borderColor='#E8ECF0'; this.style.boxShadow='none'">
                             </div>
 
+                            <style>
+                                .pay-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                                    gap: 12px;
+                                }
+                                .pay-opt-label {
+                                    cursor: pointer;
+                                    display: block;
+                                }
+                                .pay-opt {
+                                    border: 2px solid #E8ECF0;
+                                    border-radius: 12px;
+                                    padding: 18px 12px;
+                                    text-align: center;
+                                    transition: all .2s ease-in-out;
+                                    background: #fff;
+                                    position: relative;
+                                }
+                                .pay-opt-label:hover .pay-opt {
+                                    border-color: var(--opt-color) !important;
+                                    transform: translateY(-2px);
+                                }
+                                .pay-opt-label input[type="radio"]:checked + .pay-opt {
+                                    border-color: var(--opt-color) !important;
+                                    background: rgba(0, 0, 0, 0.015) !important;
+                                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                                }
+                            </style>
+
                             <div style="margin-bottom:28px;">
                                 <label style="display:block; font-weight:600; font-size:0.88rem; color:#374151; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.04em;">
                                     <i class="fas fa-wallet" style="color:#1565C0; margin-right:5px;"></i> Método de pago *
                                 </label>
-                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
-                                    @foreach([['tarjeta','fa-credit-card','Tarjeta'],['efectivo','fa-money-bill','Efectivo'],['transferencia','fa-building-columns','Transferencia']] as $m)
-                                    <label style="cursor:pointer;">
-                                        <input type="radio" name="payment_method" value="{{ $m[0] }}" required style="display:none;" onchange="document.querySelectorAll('.pay-opt').forEach(e=>e.style.borderColor='#E8ECF0'); this.closest('.pay-opt').style.borderColor='#1565C0'; this.closest('.pay-opt').style.background='rgba(21,101,192,0.05)';">
-                                        <div class="pay-opt" style="border:2px solid #E8ECF0; border-radius:12px; padding:16px 12px; text-align:center; transition:all .2s;" onmouseover="this.style.borderColor='#1565C0'" onmouseout="">
-                                            <i class="fas {{ $m[1] }}" style="font-size:1.5rem; color:#1565C0; display:block; margin-bottom:8px;"></i>
-                                            <span style="font-size:0.88rem; font-weight:600; color:#374151;">{{ $m[2] }}</span>
+                                <div class="pay-grid">
+                                    @foreach([
+                                        ['mercadopago', 'fa-wallet', 'Mercado Pago', '#009EE3'],
+                                        ['tarjeta', 'fa-credit-card', 'Tarjeta', '#1565C0'],
+                                        ['efectivo', 'fa-money-bill', 'Efectivo', '#2E7D32'],
+                                        ['transferencia', 'fa-building-columns', 'Transferencia', '#F57F17']
+                                    ] as $m)
+                                    <label class="pay-opt-label" style="--opt-color: {{ $m[3] }};">
+                                        <input type="radio" name="payment_method" value="{{ $m[0] }}" required style="display:none;">
+                                        <div class="pay-opt">
+                                            @if($m[0] === 'mercadopago')
+                                            <span style="position:absolute; top:-8px; left:50%; transform:translateX(-50%); background:#009EE3; color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:8px; text-transform:uppercase; letter-spacing:0.05em; box-shadow:0 2px 6px rgba(0,158,227,0.3);">Recomendado</span>
+                                            @endif
+                                            <i class="fas {{ $m[1] }}" style="font-size:1.6rem; color:{{ $m[3] }}; display:block; margin-bottom:8px;"></i>
+                                            <span style="font-size:0.88rem; font-weight:700; color:#374151;">{{ $m[2] }}</span>
                                         </div>
                                     </label>
                                     @endforeach
